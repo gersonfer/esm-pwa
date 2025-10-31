@@ -153,7 +153,10 @@ setInterval(()=> {
 }, 1000);
 
 function renderMobile() {
-  document.getElementById("main").innerHTML = `
+  const main = document.getElementById("main");
+  const previousScroll = main.querySelector("#carousel")?.scrollLeft || 0;
+
+  main.innerHTML = `
     <div id="carousel">
       ${teams.map(t => `
         <section class="card-mobile" style="border-color:${t.color}">
@@ -172,6 +175,10 @@ function renderMobile() {
           }).join("")}
         </section>`).join("")}
     </div>`;
+
+  const carousel = main.querySelector("#carousel");
+  carousel.scrollLeft = previousScroll; // ✅ restaura posição anterior
+
   document.getElementById("footer-text").innerText = "📱 Swipe → para ver outras equipes";
 }
 
