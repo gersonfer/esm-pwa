@@ -41,11 +41,28 @@ esm-pwa/
 
 ## 📲 Instalação no iPhone (iOS)
 
-1. Abra o Safari e acesse:  
+1. Abra o **Safari** e acesse:  
    👉 **https://gersonfer.github.io/esm-pwa/**
 2. Toque em **Share → Add to Home Screen**.
-3. Confirme o nome **ESM Live Viewer** e toque em **Add**.  
+3. Confirme o nome **ESM Live Viewer** e toque em **Add**.
 4. O app será adicionado à tela inicial e abrirá **fullscreen**, mesmo sem conexão com a internet.
+
+> 💡 Caso o app não atualize automaticamente após nova publicação, vá em  
+> *Settings → Safari → Advanced → Website Data → gersonfer.github.io → Remove All Data*  
+> e reabra a página.
+
+---
+
+## 🤖 Instalação no Android (Chrome)
+
+1. Abra o **Google Chrome** e acesse:  
+   👉 **https://gersonfer.github.io/esm-pwa/**
+2. Aguarde o carregamento e toque no **ícone de menu (⋮)** no canto superior direito.
+3. Escolha **Add to Home screen** (ou **Instalar app**, dependendo da versão).
+4. Confirme o nome e toque em **Add**.
+5. O app aparecerá na tela inicial e abrirá como um app independente (sem barra de navegação).
+
+> ✅ Funciona também no **Brave**, **Edge Mobile** e navegadores compatíveis com PWA.
 
 ---
 
