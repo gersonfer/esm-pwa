@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>🏁 ESM Live Viewer</title>
+
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#10141a" />
+
+<style>
+:root {
+  --bg: #0f1115;
+  --card: #161a20;
+  --accent: #ffcc00;
+  --text: #f6f6f6;
+  --muted: #aaa;
+  --ok: #66cc66;
+  --warn: #ffcc00;
+  --alert: #ff5555;
+}
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  overflow: hidden; height: 100vh;
+  display: flex; flex-direction: column;
+}
+header {
+  display: flex; align-items: center; justify-content: space-between;
+  background: #10141a; padding: 0.6rem 1rem;
+  font-size: 1.2rem; letter-spacing: 0.05rem;
+}
+#timer {
+  font-family: monospace; font-weight: bold;
+  color: var(--accent);
+  background: #1a1f26;
+  padding: 0.3rem 0.8rem;
+  border-radius: 0.5rem;
+  font-size: 1.1rem;
+}
+#main { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+footer { text-align: center; padding: 0.4rem; font-size: 0.8rem; color: var(--muted); background: #10141a; }
+
+/* ---- MOBILE (carrossel 1 card) ---- */
+#carousel { flex: 1; display: flex; overflow-x: scroll; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+.card-mobile {
+  flex: 0 0 100%; scroll-snap-align: center; background: var(--card);
+  border-radius: 1rem; margin: 1rem; padding: 1rem; box-sizing: border-box;
+  display: flex; flex-direction: column; justify-content: space-between;
+  box-shadow: 0 0.4rem 1rem rgba(0,0,0,0.4);
+  border: 5px solid transparent;
+}
+.card-mobile h2 { color: var(--accent); margin: 0 0 0.4rem 0; }
+.stars { margin-bottom: 1rem; }
+.driver { margin-bottom: 0.6rem; }
+.driver-name { display: flex; justify-content: space-between; font-size: 1rem; }
+.bar { width: 100%; height: 0.5rem; background: #222; border-radius: 999px; overflow: hidden; margin-top: 0.3rem; }
+.bar-fill { height: 100%; width: 0%; background: var(--warn); transition: width 0.6s linear; }
+.meta { display: flex; justify-content: space-between; font-size: 0.9rem; color: #aaa; margin-top: 0.2rem; }
+
+/* ---- MINI-TELÃO ---- */
+#mini-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1vw;
+  padding: 1vw;
+  overflow-y: auto;
+}
+.card-mini {
+  background: var(--card);
+  border-radius: 0.8rem;
+  padding: 0.8rem;
+  box-shadow: 0 0.4rem 1rem rgba(0,0,0,0.3);
+  border: 5px solid transparent;
+}
+.card-mini h3 { color: var(--accent); margin: 0 0 0.4rem 0; font-size: 1.1rem; }
+.driver-mini { margin-bottom: 0.4rem; }
+.driver-mini .driver-name { display: flex; justify-content: space-between; font-size: 0.9rem; }
+.driver-mini .bar { height: 0.4rem; }
+
+/* ---- DESKTOP TELÃO ---- */
+#grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 0.8vw;
+  padding: 0.8vw;
+  height: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+.card-desktop {
+  background: var(--card);
+  border-radius: 0.8vw;
+  padding: 0.8vw;
+  display: flex; flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 0.4vw 1vw rgba(0,0,0,0.3);
+  border: 6px solid transparent;
+}
+.card-desktop h3 { font-size: 1.4rem; margin: 0 0 0.4rem 0; color: var(--accent); }
+.card-desktop p { margin: 0.2rem 0 0.6rem 0; color: var(--muted); font-size: 1rem; }
+.driver-row { margin-bottom: 0.4rem; }
+.driver-name { display: flex; justify-content: space-between; font-weight: 500; font-size: 1rem; }
+.progress { width: 100%; height: 0.55rem; background: #222; border-radius: 999px; overflow: hidden; margin-top: 0.25rem; }
+.progress-bar { height: 0.55rem; background: var(--accent); transition: width 0.6s linear; }
+.driver-meta { font-size: 0.9rem; color: var(--muted); display: flex; justify-content: space-between; margin-top: 0.15rem; }
+</style>
+</head>
+<body>
+<header>
+  <span>🏁 ESM Live Viewer</span>
+  <span id="timer">00:00:00</span>
+</header>
+<div id="main"></div>
+<footer id="footer-text">Carregando...</footer>
+
+<script>
+const TOTAL_RACE_MIN = 240;
+const SPEED_FACTOR = 1.3;
+
+// 🎨 14 cores contrastantes para as equipes
+const teamColors = [
+  "#FF4444","#FF8800","#FFCC00","#99CC00","#00C851","#33B5E5","#2BBBAD",
+  "#4285F4","#AA66CC","#9933CC","#FF0099","#FFB6C1","#00CED1","#F0E68C"
+];
+
+const teams = Array.from({length: 14}, (_,i)=>({
+  team: "Equipe " + (i+1),
+  level: (i % 4) + 1,
+  color: teamColors[i],
+  drivers: Array.from({length: (i%2==0?3:4)},(_,j)=>({
+    name: "Piloto " + (j+1),
+    skill: ["Bronze","Silver","Gold","Platinum"][j % 4],
+    stint_target: (i%2==0?80:60),
+    stint_done: 0
+  })),
+  current: 0
+}));
+
+function stars(level) { return "⭐".repeat(level); }
+
+function formatTime(seconds){
+  const h = Math.floor(seconds/3600).toString().padStart(2,"0");
+  const m = Math.floor((seconds%3600)/60).toString().padStart(2,"0");
+  const s = Math.floor(seconds%60).toString().padStart(2,"0");
+  return `${h}:${m}:${s}`;
+}
+
+let raceSeconds = 0;
+setInterval(()=> {
+  raceSeconds += 1;
+  document.getElementById("timer").textContent = formatTime(raceSeconds);
+}, 1000);
+
+function renderMobile() {
+  document.getElementById("main").innerHTML = `
+    <div id="carousel">
+      ${teams.map(t => `
+        <section class="card-mobile" style="border-color:${t.color}">
+          <h2>${t.team}</h2>
+          <div class="stars">${stars(t.level)}</div>
+          ${t.drivers.map((d,i)=>{
+            const pct = Math.min(100, Math.round((d.stint_done / d.stint_target)*100));
+            const active = i === t.current;
+            const color = pct >= 100 ? "var(--ok)" : active ? "var(--warn)" : "var(--alert)";
+            return `
+              <div class="driver">
+                <div class="driver-name"><span>${d.name}</span><span>${d.skill}</span></div>
+                <div class="bar"><div class="bar-fill" style="width:${pct}%;background:${color};"></div></div>
+                <div class="meta"><span>${d.stint_done.toFixed(1)} / ${d.stint_target} min</span><span>${pct}%</span></div>
+              </div>`;
+          }).join("")}
+        </section>`).join("")}
+    </div>`;
+  document.getElementById("footer-text").innerText = "📱 Swipe → para ver outras equipes";
+}
+
+function renderMini() {
+  document.getElementById("main").innerHTML = `
+    <div id="mini-grid">
+      ${teams.map(t => `
+        <div class="card-mini" style="border-color:${t.color}">
+          <h3>${t.team}</h3>
+          ${t.drivers.slice(0,2).map((d,i)=>{ 
+            const pct = Math.min(100, Math.round((d.stint_done / d.stint_target)*100));
+            const color = pct >= 100 ? "var(--ok)" : "var(--warn)";
+            return `
+              <div class="driver-mini">
+                <div class="driver-name"><span>${d.name}</span><span>${pct}%</span></div>
+                <div class="bar"><div class="bar-fill" style="width:${pct}%;background:${color};"></div></div>
+              </div>`;
+          }).join("")}
+        </div>`).join("")}
+    </div>`;
+  document.getElementById("footer-text").innerText = "📲 Paisagem: Mini-telão (duas equipes lado a lado)";
+}
+
+function renderDesktop() {
+  document.getElementById("main").innerHTML = `
+    <div id="grid">
+      ${teams.map(t => `
+        <div class="card-desktop" style="border-color:${t.color}">
+          <h3>${t.team}</h3>
+          <p>${stars(t.level)}</p>
+          ${t.drivers.map((d,i)=>{
+            const pct = Math.min(100, Math.round((d.stint_done / d.stint_target)*100));
+            const active = i === t.current;
+            const color = pct >= 100 ? "var(--ok)" : active ? "var(--warn)" : "var(--alert)";
+            const opacity = active ? 1 : 0.6;
+            return `
+              <div class="driver-row" style="opacity:${opacity}">
+                <div class="driver-name"><span>${d.name}</span><span>${d.skill}</span></div>
+                <div class="progress"><div class="progress-bar" style="width:${pct}%;background:${color};"></div></div>
+                <div class="driver-meta"><span>${d.stint_done.toFixed(1)} / ${d.stint_target} min</span><span>${pct}%</span></div>
+              </div>`;
+          }).join("")}
+        </div>`).join("")}
+    </div>`;
+  document.getElementById("footer-text").innerText = "💻 Visualização Telão (auto refresh)";
+}
+
+function simulate() {
+  teams.forEach(team=>{
+    const total = team.drivers.reduce((s,d)=>s+d.stint_done,0);
+    if(total >= TOTAL_RACE_MIN) return;
+    const current = team.drivers[team.current];
+    if(current.stint_done < current.stint_target) {
+      current.stint_done += 0.8 * SPEED_FACTOR;
+    } else if(team.current < team.drivers.length - 1) {
+      team.current++;
+    }
+  });
+  render();
+}
+
+const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+function render() {
+  if (!isMobile) return renderDesktop();
+  if (window.matchMedia("(orientation: portrait)").matches) renderMobile();
+  else renderMini();
+}
+
+render();
+setInterval(simulate, 1000);
+window.addEventListener("orientationchange", () => setTimeout(render, 300));
+
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
+</script>
+</body>
+</html>
