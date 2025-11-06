@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="auto">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
 <title>🏁 ESM Live Viewer</title>
 
 <link rel="manifest" href="manifest.json" />
@@ -12,247 +13,232 @@
 :root {
   --bg: #0f1115;
   --card: #161a20;
+  --card-deck: #2e333a;
   --accent: #ffcc00;
   --text: #f6f6f6;
-  --muted: #aaa;
-  --ok: #66cc66;
-  --warn: #ffcc00;
-  --alert: #ff5555;
+  --muted: #bbb;
+  --ok: #2ecc71;
+  --alert: #e74c3c;
+  --warn: #f1c40f;
 }
 body {
-  margin: 0; background: var(--bg); color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  overflow: hidden; height: 100vh;
-  display: flex; flex-direction: column;
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  display:flex;flex-direction:column;height:100vh;overflow:hidden;
 }
 header {
-  display: flex; align-items: center; justify-content: space-between;
-  background: #10141a; padding: 0.6rem 1rem;
-  font-size: 1.2rem; letter-spacing: 0.05rem;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:.6rem 1rem;background:#10141a80;font-size:1rem;
+}
+#track-badge{
+  display:none;
+  margin-left:.45rem;
+  background:var(--accent);
+  padding:.05rem .35rem;
+  border-radius:.35rem;
+  color:#000;
+  font-size:.8rem;
 }
 #timer {
-  font-family: monospace; font-weight: bold;
-  color: var(--accent);
-  background: #1a1f26;
-  padding: 0.3rem 0.8rem;
-  border-radius: 0.5rem;
-  font-size: 1.1rem;
+  font-family:monospace;font-weight:bold;
+  padding:.25rem .7rem;border-radius:.5rem;font-size:1rem;
+  border:3px solid var(--accent);
+  color:var(--accent);
 }
-#main { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
-footer { text-align: center; padding: 0.4rem; font-size: 0.8rem; color: var(--muted); background: #10141a; }
-
-/* ---- MOBILE (carrossel 1 card) ---- */
-#carousel { flex: 1; display: flex; overflow-x: scroll; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
-.card-mobile {
-  flex: 0 0 100%; scroll-snap-align: center; background: var(--card);
-  border-radius: 1rem; margin: 1rem; padding: 1rem; box-sizing: border-box;
-  display: flex; flex-direction: column; justify-content: space-between;
-  box-shadow: 0 0.4rem 1rem rgba(0,0,0,0.4);
-  border: 5px solid transparent;
-}
-.card-mobile h2 { color: var(--accent); margin: 0 0 0.4rem 0; }
-.stars { margin-bottom: 1rem; }
-.driver { margin-bottom: 0.6rem; }
-.driver-name { display: flex; justify-content: space-between; font-size: 1rem; }
-.bar { width: 100%; height: 0.5rem; background: #222; border-radius: 999px; overflow: hidden; margin-top: 0.3rem; }
-.bar-fill { height: 100%; width: 0%; background: var(--warn); transition: width 0.6s linear; }
-.meta { display: flex; justify-content: space-between; font-size: 0.9rem; color: #aaa; margin-top: 0.2rem; }
-
-/* ---- MINI-TELÃO ---- */
-#mini-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1vw;
-  padding: 1vw;
+#main {
+  flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
 }
-.card-mini {
-  background: var(--card);
-  border-radius: 0.8rem;
-  padding: 0.8rem;
-  box-shadow: 0 0.4rem 1rem rgba(0,0,0,0.3);
-  border: 5px solid transparent;
-}
-.card-mini h3 { color: var(--accent); margin: 0 0 0.4rem 0; font-size: 1.1rem; }
-.driver-mini { margin-bottom: 0.4rem; }
-.driver-mini .driver-name { display: flex; justify-content: space-between; font-size: 0.9rem; }
-.driver-mini .bar { height: 0.4rem; }
-
-/* ---- DESKTOP TELÃO ---- */
 #grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 0.8vw;
-  padding: 0.8vw;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-auto-rows: 1fr;
+  gap: .8vw;
+  padding: .8vw;
   height: 100%;
   box-sizing: border-box;
   overflow-y: auto;
 }
-.card-desktop {
-  background: var(--card);
-  border-radius: 0.8vw;
-  padding: 0.8vw;
-  display: flex; flex-direction: column;
-  justify-content: space-between;
-  box-shadow: 0 0.4vw 1vw rgba(0,0,0,0.3);
-  border: 6px solid transparent;
+.card-desktop{
+  background:var(--card);
+  border-radius:.8vw;
+  padding:1.0vw;
+  box-shadow:0 .4vw 1vw rgba(0,0,0,.25);
+  border:5px solid transparent;
+  display:flex;flex-direction:column;
 }
-.card-desktop h3 { font-size: 1.4rem; margin: 0 0 0.4rem 0; color: var(--accent); }
-.card-desktop p { margin: 0.2rem 0 0.6rem 0; color: var(--muted); font-size: 1rem; }
-.driver-row { margin-bottom: 0.4rem; }
-.driver-name { display: flex; justify-content: space-between; font-weight: 500; font-size: 1rem; }
-.progress { width: 100%; height: 0.55rem; background: #222; border-radius: 999px; overflow: hidden; margin-top: 0.25rem; }
-.progress-bar { height: 0.55rem; background: var(--accent); transition: width 0.6s linear; }
-.driver-meta { font-size: 0.9rem; color: var(--muted); display: flex; justify-content: space-between; margin-top: 0.15rem; }
+.card-desktop.deck-active{
+  background:var(--card-deck) !important;
+}
+.card-desktop h3{
+  margin:0 0 .8rem 0;
+  color:var(--accent);
+  font-size:1.25rem;
+}
+.team-stars {
+  color:var(--muted);
+  font-size:1rem; margin-left:.3rem;
+}
+.driver-row{margin-bottom:.65rem;}
+.driver-name{
+  display:flex;justify-content:space-between;
+  font-size:1rem;
+}
+.medals{
+  color:var(--muted);
+  font-size:.6rem;
+  letter-spacing:1px;
+  margin-left:.25rem;
+}
+.progress {
+  width:100%;height:.5rem;background:#222b;border-radius:999px;
+  overflow:hidden;margin-top:.2rem;
+}
+.progress-bar{height:100%;transition:width .4s linear;}
+.driver-meta{
+  color:var(--muted);
+  font-size:.85rem;
+  display:flex;justify-content:space-between;margin-top:.1rem;
+}
 </style>
 </head>
 <body>
+
 <header>
-  <span>🏁 ESM Live Viewer</span>
-  <span id="timer">00:00:00</span>
+  <span>
+    🏁 ESM Live Viewer
+    <span id="track-badge"></span>
+  </span>
+  <span id="timer">--:--:--</span>
 </header>
+
 <div id="main"></div>
-<footer id="footer-text">Carregando...</footer>
 
 <script>
-const TOTAL_RACE_MIN = 240;
-const SPEED_FACTOR = 1.3;
+(function(){
+  const $ = q => document.querySelector(q);
 
-// 🎨 14 cores contrastantes para as equipes
-const teamColors = [
-  "#FF4444","#FF8800","#FFCC00","#99CC00","#00C851","#33B5E5","#2BBBAD",
-  "#4285F4","#AA66CC","#9933CC","#FF0099","#FFB6C1","#00CED1","#F0E68C"
-];
+  function formatTime(sec){
+    if (typeof sec !== "number") return "--:--:--";
+    sec = Math.max(0,sec|0);
+    const h = String(Math.floor(sec/3600)).padStart(2,"0");
+    const m = String(Math.floor((sec%3600)/60)).padStart(2,"0");
+    const s = String(sec%60).padStart(2,"0");
+    return `${h}:${m}:${s}`;
+  }
 
-const teams = Array.from({length: 14}, (_,i)=>({
-  team: "Equipe " + (i+1),
-  level: (i % 4) + 1,
-  color: teamColors[i],
-  drivers: Array.from({length: (i%2==0?3:4)},(_,j)=>({
-    name: "Piloto " + (j+1),
-    skill: ["Bronze","Silver","Gold","Platinum"][j % 4],
-    stint_target: (i%2==0?80:60),
-    stint_done: 0
-  })),
-  current: 0
-}));
+  function stars(cat){
+    const c=(cat||"").toUpperCase();
+    if(c==="LIGHT") return "★☆☆☆";
+    if(c==="AM") return "★★☆☆";
+    if(c==="PRO-AM") return "★★★☆";
+    if(c==="PRO") return "★★★★";
+    return "";
+  }
 
-function stars(level) { return "⭐".repeat(level); }
+  function medals(skill){
+    const s=(skill||"").toLowerCase();
+    if(s==="platinum") return "●●●●";
+    if(s==="gold")     return "●●●○";
+    if(s==="silver")   return "●●○○";
+    if(s==="bronze")   return "●○○○";
+    return "";
+  }
 
-function formatTime(seconds){
-  const h = Math.floor(seconds/3600).toString().padStart(2,"0");
-  const m = Math.floor((seconds%3600)/60).toString().padStart(2,"0");
-  const s = Math.floor(seconds%60).toString().padStart(2,"0");
-  return `${h}:${m}:${s}`;
-}
-
-let raceSeconds = 0;
-setInterval(()=> {
-  raceSeconds += 1;
-  document.getElementById("timer").textContent = formatTime(raceSeconds);
-}, 1000);
-
-function renderMobile() {
-  const main = document.getElementById("main");
-  const previousScroll = main.querySelector("#carousel")?.scrollLeft || 0;
-
-  main.innerHTML = `
-    <div id="carousel">
-      ${teams.map(t => `
-        <section class="card-mobile" style="border-color:${t.color}">
-          <h2>${t.team}</h2>
-          <div class="stars">${stars(t.level)}</div>
-          ${t.drivers.map((d,i)=>{
-            const pct = Math.min(100, Math.round((d.stint_done / d.stint_target)*100));
-            const active = i === t.current;
-            const color = pct >= 100 ? "var(--ok)" : active ? "var(--warn)" : "var(--alert)";
-            return `
-              <div class="driver">
-                <div class="driver-name"><span>${d.name}</span><span>${d.skill}</span></div>
-                <div class="bar"><div class="bar-fill" style="width:${pct}%;background:${color};"></div></div>
-                <div class="meta"><span>${d.stint_done.toFixed(1)} / ${d.stint_target} min</span><span>${pct}%</span></div>
-              </div>`;
-          }).join("")}
-        </section>`).join("")}
-    </div>`;
-
-  const carousel = main.querySelector("#carousel");
-  carousel.scrollLeft = previousScroll; // ✅ restaura posição anterior
-
-  document.getElementById("footer-text").innerText = "📱 Swipe → para ver outras equipes";
-}
-
-function renderMini() {
-  document.getElementById("main").innerHTML = `
-    <div id="mini-grid">
-      ${teams.map(t => `
-        <div class="card-mini" style="border-color:${t.color}">
-          <h3>${t.team}</h3>
-          ${t.drivers.slice(0,2).map((d,i)=>{ 
-            const pct = Math.min(100, Math.round((d.stint_done / d.stint_target)*100));
-            const color = pct >= 100 ? "var(--ok)" : "var(--warn)";
-            return `
-              <div class="driver-mini">
-                <div class="driver-name"><span>${d.name}</span><span>${pct}%</span></div>
-                <div class="bar"><div class="bar-fill" style="width:${pct}%;background:${color};"></div></div>
-              </div>`;
-          }).join("")}
-        </div>`).join("")}
-    </div>`;
-  document.getElementById("footer-text").innerText = "📲 Paisagem: Mini-telão (duas equipes lado a lado)";
-}
-
-function renderDesktop() {
-  document.getElementById("main").innerHTML = `
-    <div id="grid">
-      ${teams.map(t => `
-        <div class="card-desktop" style="border-color:${t.color}">
-          <h3>${t.team}</h3>
-          <p>${stars(t.level)}</p>
-          ${t.drivers.map((d,i)=>{
-            const pct = Math.min(100, Math.round((d.stint_done / d.stint_target)*100));
-            const active = i === t.current;
-            const color = pct >= 100 ? "var(--ok)" : active ? "var(--warn)" : "var(--alert)";
-            const opacity = active ? 1 : 0.6;
-            return `
-              <div class="driver-row" style="opacity:${opacity}">
-                <div class="driver-name"><span>${d.name}</span><span>${d.skill}</span></div>
-                <div class="progress"><div class="progress-bar" style="width:${pct}%;background:${color};"></div></div>
-                <div class="driver-meta"><span>${d.stint_done.toFixed(1)} / ${d.stint_target} min</span><span>${pct}%</span></div>
-              </div>`;
-          }).join("")}
-        </div>`).join("")}
-    </div>`;
-  document.getElementById("footer-text").innerText = "💻 Visualização Telão (auto refresh)";
-}
-
-function simulate() {
-  teams.forEach(team=>{
-    const total = team.drivers.reduce((s,d)=>s+d.stint_done,0);
-    if(total >= TOTAL_RACE_MIN) return;
-    const current = team.drivers[team.current];
-    if(current.stint_done < current.stint_target) {
-      current.stint_done += 0.8 * SPEED_FACTOR;
-    } else if(team.current < team.drivers.length - 1) {
-      team.current++;
+  function updateTrackBadge(name){
+    const badge=$("#track-badge");
+    if (!name) {
+      badge.style.display="none";
+    } else {
+      badge.style.display="inline-block";
+      badge.textContent=name;
     }
-  });
-  render();
-}
+  }
 
-const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  function setTimerBorder(status){
+    const el = $("#timer");
+    const s = String(status || "").toLowerCase();
 
-function render() {
-  if (!isMobile) return renderDesktop();
-  if (window.matchMedia("(orientation: portrait)").matches) renderMobile();
-  else renderMini();
-}
+    if (s === "running") {
+      el.style.borderColor = "var(--ok)";
+    } else if (s === "paused") {
+      el.style.borderColor = "var(--alert)";
+    } else if (s === "finished") {
+      el.style.borderColor = "var(--warn)";
+    } else {
+      el.style.borderColor = "var(--accent)";
+    }
+    el.style.borderWidth = "3px";
+  }
 
-render();
-setInterval(simulate, 1000);
-window.addEventListener("orientationchange", () => setTimeout(render, 300));
+  function renderDesktop(data){
+    const tlist=data.teams||[];
+    $("#main").innerHTML=`
+      <div id="grid">
+        ${tlist.map(t=>{
+          const deck=t.deck?"deck-active":"";
+          return `
+          <div class="card-desktop ${deck}" style="border-color:${t.color||"#888"}">
 
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
+            <h3>
+              ${t.team_name}
+              <span class="team-stars">${stars(t.category)}</span>
+            </h3>
+
+            ${(t.drivers||[]).map(d=>{
+              const total=d.stint_duration_sec||0;
+              const left=d.stint_left_sec||0;
+              const done=total-left;
+              const pct=Math.max(0,Math.min(100,Math.round(100*(done/Math.max(1,total)))));
+
+              const color = d.check_in ? "var(--ok)" : "var(--alert)";
+              const opacity = d.check_in?1:0.7;
+
+              return `
+                <div class="driver-row" style="opacity:${opacity}">
+                  <div class="driver-name">
+                    <span>${d.name}<span class="medals">${medals(d.skill)}</span></span>
+                    <span>${pct}%</span>
+                  </div>
+                  <div class="progress">
+                    <div class="progress-bar" style="width:${pct}%;background:${color}"></div>
+                  </div>
+                  <div class="driver-meta">
+                    <span>${(done/60).toFixed(1)} / ${(left/60).toFixed(1)} min</span>
+                  </div>
+                </div>
+              `;
+            }).join("")}
+          </div>`;
+        }).join("")}
+      </div>`;
+  }
+
+  function render(data){
+    $("#timer").textContent=formatTime(data.race_left_sec);
+    setTimerBorder(data.race_status);
+    updateTrackBadge(data.track_name);
+    renderDesktop(data);
+  }
+
+  function connect(){
+    const ws=new WebSocket(`wss://esm-live.fly.dev/ws`);
+    ws.onmessage=ev=>{
+      try{
+        const data=JSON.parse(ev.data);
+        if(data.type!=="hello") render(data);
+      }catch(_){}
+    };
+    ws.onclose=()=>setTimeout(connect,1000);
+  }
+
+  render({race_left_sec:0,teams:[]});
+  connect();
+})();
 </script>
+
 </body>
 </html>
