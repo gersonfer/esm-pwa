@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
 <title>🏁 ESM Live Viewer</title>
 
 <link rel="manifest" href="manifest.json" />
@@ -51,8 +52,6 @@ header {
   overflow-y: auto;
   overflow-x: hidden;
 }
-
-/* === DESKTOP GRID (EXISTENTE, NÃO ALTERADO) === */
 #grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -63,7 +62,6 @@ header {
   box-sizing: border-box;
   overflow-y: auto;
 }
-
 .card-desktop{
   background:var(--card);
   border-radius:.8vw;
@@ -105,33 +103,6 @@ header {
   font-size:.85rem;
   display:flex;justify-content:space-between;margin-top:.1rem;
 }
-
-/* === MOBILE CAROUSEL (NOVO) === */
-#carousel {
-  display:flex;
-  height:100%;
-  overflow-x:hidden;
-  scroll-snap-type:x mandatory;
-}
-
-.carousel-card {
-  min-width:100%;
-  scroll-snap-align:start;
-  padding:5vw;
-  box-sizing:border-box;
-  background:var(--card);
-  border-radius:12px;
-  border:5px solid transparent;
-  display:flex;
-  flex-direction:column;
-  justify-content:flex-start;
-}
-
-@media (orientation: landscape) {
-  .carousel-card {
-    min-width:50%; /* 2 por tela em horizontal */
-  }
-}
 </style>
 </head>
 <body>
@@ -149,11 +120,6 @@ header {
 <script>
 (function(){
   const $ = q => document.querySelector(q);
-  let activeCardIndex = 0;  // Preserva o swipe após updates
-
-  function isMobile(){
-    return window.innerWidth < 900;
-  }
 
   function formatTime(sec){
     if (typeof sec !== "number") return "--:--:--";
@@ -208,7 +174,6 @@ header {
     el.style.borderWidth = "3px";
   }
 
-  /* === DESKTOP RENDER (Original Mantido) === */
   function renderDesktop(data){
     const tlist=data.teams||[];
     $("#main").innerHTML=`
@@ -252,83 +217,11 @@ header {
       </div>`;
   }
 
-  /* === MOBILE CAROUSEL (NOVO) === */
-  function renderMobile(data){
-    const tlist = data.teams || [];
-    const main = $("#main");
-
-    // guarda posição anterior
-    const prevScroll = main.querySelector("#carousel")?.scrollLeft || 0;
-
-    main.innerHTML = `
-      <div id="carousel">
-        ${tlist.map(t=>{
-          return `
-          <div class="carousel-card" style="border-color:${t.color||"#888"}">
-
-            <h3>
-              ${t.team_name}
-              <span class="team-stars">${stars(t.category)}</span>
-            </h3>
-
-            ${(t.drivers||[]).map(d=>{
-              const total=d.stint_duration_sec||0;
-              const left=d.stint_left_sec||0;
-              const done=total-left;
-              const pct=Math.max(0,Math.min(100,Math.round(100*(done/Math.max(1,total))));
-              const color = d.check_in ? "var(--ok)" : "var(--alert)";
-              return `
-                <div class="driver-row">
-                  <div class="driver-name">
-                    <span>${d.name}<span class="medals">${medals(d.skill)}</span></span>
-                    <span>${pct}%</span>
-                  </div>
-                  <div class="progress">
-                    <div class="progress-bar" style="width:${pct}%;background:${color}"></div>
-                  </div>
-                  <div class="driver-meta">
-                    <span>${(done/60).toFixed(1)} / ${(left/60).toFixed(1)} min</span>
-                  </div>
-                </div>
-              `;
-            }).join("")}
-
-          </div>
-          `;
-        }).join("")}
-      </div>
-    `;
-
-    const el = $("#carousel");
-    el.scrollLeft = prevScroll;
-
-    el.addEventListener("scroll", ()=>{
-      const card = el.querySelector(".carousel-card");
-      if(!card) return;
-      const cardW = card.offsetWidth;
-      activeCardIndex = Math.round(el.scrollLeft / cardW);
-    });
-  }
-
   function render(data){
     $("#timer").textContent=formatTime(data.race_left_sec);
     setTimerBorder(data.race_status);
     updateTrackBadge(data.track_name);
-
-    if (isMobile()) renderMobile(data);
-    else renderDesktop(data);
-
-    // após render, restaura posição do card correto
-    if (isMobile()) {
-      const el = $("#carousel");
-      if (el) {
-        const card = el.querySelector(".carousel-card");
-        if (card) {
-          const cardW = card.offsetWidth;
-          el.scrollLeft = activeCardIndex * cardW;
-        }
-      }
-    }
+    renderDesktop(data);
   }
 
   function connect(){
@@ -346,5 +239,6 @@ header {
   connect();
 })();
 </script>
+
 </body>
 </html>
