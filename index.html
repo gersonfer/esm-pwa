@@ -52,7 +52,7 @@ header {
   overflow-x: hidden;
 }
 
-/* === DESKTOP GRID (EXISTENTE, NÃO ALTERADO) === */
+/* === DESKTOP GRID (EXISTENTE) === */
 #grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -106,7 +106,7 @@ header {
   display:flex;justify-content:space-between;margin-top:.1rem;
 }
 
-/* === MOBILE CAROUSEL (NOVO) === */
+/* === MOBILE CAROUSEL === */
 #carousel {
   display:flex;
   height:100%;
@@ -129,7 +129,7 @@ header {
 
 @media (orientation: landscape) {
   .carousel-card {
-    min-width:50%; /* 2 por tela em horizontal */
+    min-width:50%;
   }
 }
 </style>
@@ -149,7 +149,7 @@ header {
 <script>
 (function(){
   const $ = q => document.querySelector(q);
-  let activeCardIndex = 0;  // Preserva o swipe após updates
+  let activeCardIndex = 0;
 
   function isMobile(){
     return window.innerWidth < 900;
@@ -208,7 +208,7 @@ header {
     el.style.borderWidth = "3px";
   }
 
-  /* === DESKTOP RENDER (Original Mantido) === */
+  /* === DESKTOP === */
   function renderDesktop(data){
     const tlist=data.teams||[];
     $("#main").innerHTML=`
@@ -228,7 +228,6 @@ header {
               const left=d.stint_left_sec||0;
               const done=total-left;
               const pct=Math.max(0,Math.min(100,Math.round(100*(done/Math.max(1,total)))));
-
               const color = d.check_in ? "var(--ok)" : "var(--alert)";
               const opacity = d.check_in?1:0.7;
 
@@ -252,12 +251,11 @@ header {
       </div>`;
   }
 
-  /* === MOBILE CAROUSEL (NOVO) === */
+  /* ✅ MOBILE COM CORREÇÃO DE SINTAXE */
   function renderMobile(data){
     const tlist = data.teams || [];
     const main = $("#main");
 
-    // guarda posição anterior
     const prevScroll = main.querySelector("#carousel")?.scrollLeft || 0;
 
     main.innerHTML = `
@@ -275,7 +273,7 @@ header {
               const total=d.stint_duration_sec||0;
               const left=d.stint_left_sec||0;
               const done=total-left;
-              const pct=Math.max(0,Math.min(100,Math.round(100*(done/Math.max(1,total))));
+              const pct=Math.max(0,Math.min(100,Math.round(100*(done/Math.max(1,total)))));
               const color = d.check_in ? "var(--ok)" : "var(--alert)";
               return `
                 <div class="driver-row">
@@ -318,7 +316,6 @@ header {
     if (isMobile()) renderMobile(data);
     else renderDesktop(data);
 
-    // após render, restaura posição do card correto
     if (isMobile()) {
       const el = $("#carousel");
       if (el) {
@@ -331,8 +328,9 @@ header {
     }
   }
 
+  /* ✅ CORRIGIDO PARA O RENDER */
   function connect(){
-    const ws=new WebSocket(`wss://esm-live.fly.dev/ws`);
+    const ws=new WebSocket(`wss://esm-live.onrender.com/ws`);
     ws.onmessage=ev=>{
       try{
         const data=JSON.parse(ev.data);
@@ -345,6 +343,16 @@ header {
   render({race_left_sec:0,teams:[]});
   connect();
 })();
+
 </script>
+
+<!-- ✅ REGISTRA SERVICE WORKER PARA PWA -->
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./sw.js")
+    .catch(err => console.error("SW registration failed:", err));
+}
+</script>
+
 </body>
 </html>
