@@ -52,7 +52,7 @@ header {
   overflow-x: hidden;
 }
 
-/* === DESKTOP GRID (EXISTENTE) === */
+/* === DESKTOP GRID === */
 #grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -106,18 +106,17 @@ header {
   display:flex;justify-content:space-between;margin-top:.1rem;
 }
 
-/* === MOBILE CAROUSEL (CORRIGIDO) === */
+/* === MOBILE CAROUSEL === */
 #carousel {
   display: flex;
   height: 100%;
-  overflow-x: auto;            /* <-- obrigatório para swipe */
+  overflow-x: auto;
   overflow-y: hidden;
   scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;  /* <-- iOS smooth scroll */
+  -webkit-overflow-scrolling: touch;
 }
-
 .carousel-card {
-  flex: 0 0 100%;              /* ocupa tela inteira */
+  flex: 0 0 100%;
   scroll-snap-align: start;
   padding: 5vw;
   box-sizing: border-box;
@@ -127,11 +126,28 @@ header {
   display: flex;
   flex-direction: column;
 }
-
 @media (orientation: landscape) {
-  .carousel-card {
-    flex: 0 0 50%;             /* 2 cards por tela */
-  }
+  .carousel-card { flex: 0 0 50%; }
+}
+
+/* ✅ DOTS para mobile */
+#dots{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:8px;
+  padding:8px 0 10px;
+}
+.dot{
+  width:10px;
+  height:10px;
+  background:#555;
+  border-radius:50%;
+  transition:background .3s, transform .2s;
+}
+.dot.active{
+  background:var(--accent);
+  transform:scale(1.15);
 }
 </style>
 </head>
@@ -152,8 +168,9 @@ header {
   const $ = q => document.querySelector(q);
   let activeCardIndex = 0;
 
+  /* ✅ melhor detecção para iPhone/iPad */
   function isMobile(){
-    return window.innerWidth < 900;
+    return window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 900;
   }
 
   function formatTime(sec){
@@ -185,9 +202,8 @@ header {
 
   function updateTrackBadge(name){
     const badge=$("#track-badge");
-    if (!name) {
-      badge.style.display="none";
-    } else {
+    if (!name) badge.style.display="none";
+    else {
       badge.style.display="inline-block";
       badge.textContent=name;
     }
@@ -196,17 +212,11 @@ header {
   function setTimerBorder(status){
     const el = $("#timer");
     const s = String(status || "").toLowerCase();
-
-    if (s === "running") {
-      el.style.borderColor = "var(--ok)";
-    } else if (s === "paused") {
-      el.style.borderColor = "var(--alert)";
-    } else if (s === "finished") {
-      el.style.borderColor = "var(--warn)";
-    } else {
-      el.style.borderColor = "var(--accent)";
-    }
-    el.style.borderWidth = "3px";
+    if (s==="running") el.style.borderColor="var(--ok)";
+    else if (s==="paused") el.style.borderColor="var(--alert)";
+    else if (s==="finished") el.style.borderColor="var(--warn)";
+    else el.style.borderColor="var(--accent)";
+    el.style.borderWidth="3px";
   }
 
   /* === DESKTOP === */
@@ -219,10 +229,7 @@ header {
           return `
           <div class="card-desktop ${deck}" style="border-color:${t.color||"#888"}">
 
-            <h3>
-              ${t.team_name}
-              <span class="team-stars">${stars(t.category)}</span>
-            </h3>
+            <h3>${t.team_name}<span class="team-stars">${stars(t.category)}</span></h3>
 
             ${(t.drivers||[]).map(d=>{
               const total=d.stint_duration_sec||0;
@@ -252,11 +259,10 @@ header {
       </div>`;
   }
 
- 
+  /* ✅ MOBILE COM DOTS */
   function renderMobile(data){
     const tlist = data.teams || [];
     const main = $("#main");
-
     const prevScroll = main.querySelector("#carousel")?.scrollLeft || 0;
 
     main.innerHTML = `
@@ -291,22 +297,20 @@ header {
       <div id="dots"></div>
     `;
 
-    // restaura posição
     const el = $("#carousel");
     el.scrollLeft = prevScroll;
 
-    // cria os dots
+    /** cria dots */
     const dots = $("#dots");
     dots.innerHTML = tlist.map((_,i)=>`
       <div class="dot ${i===activeCardIndex?'active':''}"></div>
     `).join("");
 
-    // evento do swipe → atualiza activeCardIndex e dots
+    /** atualiza ao fazer swipe */
     el.addEventListener("scroll", ()=>{
       const card = el.querySelector(".carousel-card");
       if(!card) return;
-      const cardW = card.offsetWidth;
-
+      const cardW = card.offsetWidth||1;
       activeCardIndex = Math.round(el.scrollLeft / cardW);
 
       document.querySelectorAll(".dot").forEach((d,i)=>{
@@ -335,7 +339,6 @@ header {
     }
   }
 
-  /* ✅ CORRIGIDO PARA O RENDER */
   function connect(){
     const ws=new WebSocket(`wss://esm-live.onrender.com/ws`);
     ws.onmessage=ev=>{
@@ -350,10 +353,8 @@ header {
   render({race_left_sec:0,teams:[]});
   connect();
 })();
-
 </script>
 
-<!-- ✅ REGISTRA SERVICE WORKER PARA PWA -->
 <script>
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("./sw.js")
