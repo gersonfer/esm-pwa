@@ -325,6 +325,18 @@ header {
         d.classList.toggle("active", i===activeCardIndex);
       });
     });
+
+    // permitir clicar nos dots → vai direto para o card
+    document.querySelectorAll(".dot").forEach((d,i)=>{
+      d.addEventListener("click", ()=>{
+        const el = $("#carousel");
+        const card = el.querySelector(".carousel-card");
+        if (!card) return;
+        const cardW = card.offsetWidth;
+        activeCardIndex = i;
+        el.scrollTo({ left: i * cardW, behavior: "smooth" });
+      });
+    });
   }
 
   function render(data){
