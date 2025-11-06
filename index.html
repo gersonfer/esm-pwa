@@ -252,66 +252,68 @@ header {
       </div>`;
   }
 
-  /* ✅ MOBILE COM CORREÇÃO DE SINTAXE */
+ 
   function renderMobile(data){
-  const tlist = data.teams || [];
-  const main = $("#main");
+    const tlist = data.teams || [];
+    const main = $("#main");
 
-  const prevScroll = main.querySelector("#carousel")?.scrollLeft || 0;
+    const prevScroll = main.querySelector("#carousel")?.scrollLeft || 0;
 
-  main.innerHTML = `
-    <div id="carousel">
-      ${tlist.map(t=>{
-        return `
-        <div class="carousel-card" style="border-color:${t.color||"#888"}">
-
-          <h3>
-            ${t.team_name}
-            <span class="team-stars">${stars(t.category)}</span>
-          </h3>
-
-          ${(t.drivers||[]).map(d=>{
-            const total=d.stint_duration_sec||0;
-            const left=d.stint_left_sec||0;
-            const done=total-left;
-            const pct=Math.max(0,
-              Math.min(100,
-                Math.round(100*(done/Math.max(1,total)))
-              )
-            );
-            const color = d.check_in ? "var(--ok)" : "var(--alert)";
-            return `
-              <div class="driver-row">
-                <div class="driver-name">
-                  <span>${d.name}<span class="medals">${medals(d.skill)}</span></span>
-                  <span>${pct}%</span>
+    main.innerHTML = `
+      <div id="carousel">
+        ${tlist.map(t=>`
+          <div class="carousel-card" style="border-color:${t.color||"#888"}">
+            <h3>${t.team_name}<span class="team-stars">${stars(t.category)}</span></h3>
+            ${(t.drivers||[]).map(d=>{
+              const total=d.stint_duration_sec||0;
+              const left=d.stint_left_sec||0;
+              const done=total-left;
+              const pct=Math.max(0,Math.min(100,Math.round(100*(done/Math.max(1,total)))));
+              const color = d.check_in ? "var(--ok)" : "var(--alert)";
+              return `
+                <div class="driver-row">
+                  <div class="driver-name">
+                    <span>${d.name}<span class="medals">${medals(d.skill)}</span></span>
+                    <span>${pct}%</span>
+                  </div>
+                  <div class="progress">
+                    <div class="progress-bar" style="width:${pct}%;background:${color}"></div>
+                  </div>
+                  <div class="driver-meta">
+                    <span>${(done/60).toFixed(1)} / ${(left/60).toFixed(1)} min</span>
+                  </div>
                 </div>
-                <div class="progress">
-                  <div class="progress-bar" style="width:${pct}%;background:${color}"></div>
-                </div>
-                <div class="driver-meta">
-                  <span>${(done/60).toFixed(1)} / ${(left/60).toFixed(1)} min</span>
-                </div>
-              </div>
-            `;
-          }).join("")}
+              `;
+            }).join("")}
+          </div>
+        `).join("")}
+      </div>
+      <div id="dots"></div>
+    `;
 
-        </div>
-        `;
-      }).join("")}
-    </div>
-  `;
+    // restaura posição
+    const el = $("#carousel");
+    el.scrollLeft = prevScroll;
 
-  const el = $("#carousel");
-  el.scrollLeft = prevScroll;
+    // cria os dots
+    const dots = $("#dots");
+    dots.innerHTML = tlist.map((_,i)=>`
+      <div class="dot ${i===activeCardIndex?'active':''}"></div>
+    `).join("");
 
-  el.addEventListener("scroll", ()=>{
-    const card = el.querySelector(".carousel-card");
-    if(!card) return;
-    const cardW = card.offsetWidth;
-    activeCardIndex = Math.round(el.scrollLeft / cardW);
-  });
-}
+    // evento do swipe → atualiza activeCardIndex e dots
+    el.addEventListener("scroll", ()=>{
+      const card = el.querySelector(".carousel-card");
+      if(!card) return;
+      const cardW = card.offsetWidth;
+
+      activeCardIndex = Math.round(el.scrollLeft / cardW);
+
+      document.querySelectorAll(".dot").forEach((d,i)=>{
+        d.classList.toggle("active", i===activeCardIndex);
+      });
+    });
+  }
 
   function render(data){
     $("#timer").textContent=formatTime(data.race_left_sec);
