@@ -1,4 +1,4 @@
-const CACHE_NAME = "esm-live-cache-v3";
+const CACHE_NAME = "esm-live-cache-v4";
 
 self.addEventListener("install", e => {
   e.waitUntil(
