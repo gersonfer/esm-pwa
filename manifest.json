@@ -1,8 +1,8 @@
 {
   "name": "ESM Live Viewer",
   "short_name": "ESM Live",
-  "start_url": "/esm-live-pwa/index.html",
-  "scope": "/esm-live-pwa/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#0f1115",
   "theme_color": "#10141a",
