@@ -1,7 +1,7 @@
 {
   "name": "ESM Live Viewer",
   "short_name": "ESM Live",
-  "start_url": "./",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0f1115",
