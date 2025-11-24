@@ -130,21 +130,21 @@ header {
   .carousel-card { flex: 0 0 50%; }
 }
 
-/* ✅ DOTS para mobile */
+/* DOTS mobile */
 #dots {
   display: flex;
   justify-content: center;
   gap: 6px;
   padding: 10px 0;
   position: absolute;
-  bottom: 10px;                    /* ✅ sobe um pouco */
+  bottom: 10px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 20;
 }
 
 .dot {
-  width: 10px;                     /* ✅ maior */
+  width: 10px;
   height: 10px;
   background: #666;
   border-radius: 50%;
@@ -153,9 +153,9 @@ header {
 }
 
 .dot.active {
-  background: var(--accent);       /* amarelo */
+  background: var(--accent);
   opacity: 1;
-  transform: scale(1.3);           /* ✅ leve zoom no ativo */
+  transform: scale(1.3);
 }
 </style>
 </head>
@@ -177,7 +177,6 @@ header {
   const $ = q => document.querySelector(q);
   let activeCardIndex = 0;
 
-  /* ✅ melhor detecção para iPhone/iPad */
   function isMobile(){
     return window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 900;
   }
@@ -248,10 +247,15 @@ header {
               const color = d.check_in ? "var(--ok)" : "var(--alert)";
               const opacity = d.check_in?1:0.7;
 
+              /* <<< COR DO NOME — DESKTOP >>> */
+              let nameColor="var(--text)";
+              if(left < 120) nameColor="var(--alert)";
+              else if(left < 300) nameColor="var(--warn)";
+
               return `
                 <div class="driver-row" style="opacity:${opacity}">
                   <div class="driver-name">
-                    <span>${d.name}<span class="medals">${medals(d.skill)}</span></span>
+                    <span style="color:${nameColor}">${d.name}<span class="medals">${medals(d.skill)}</span></span>
                     <span>${pct}%</span>
                   </div>
                   <div class="progress">
@@ -268,7 +272,7 @@ header {
       </div>`;
   }
 
-  /* ✅ MOBILE COM DOTS */
+  /* === MOBILE === */
   function renderMobile(data){
     const tlist = data.teams || [];
     const main = $("#main");
@@ -277,18 +281,26 @@ header {
     main.innerHTML = `
       <div id="carousel">
         ${tlist.map(t=>`
+
           <div class="carousel-card" style="border-color:${t.color||"#888"}">
             <h3>${t.team_name}<span class="team-stars">${stars(t.category)}</span></h3>
+
             ${(t.drivers||[]).map(d=>{
               const total=d.stint_duration_sec||0;
               const left=d.stint_left_sec||0;
               const done=total-left;
               const pct=Math.max(0,Math.min(100,Math.round(100*(done/Math.max(1,total)))));
               const color = d.check_in ? "var(--ok)" : "var(--alert)";
+
+              /* <<< COR DO NOME — MOBILE >>> */
+              let nameColor="var(--text)";
+              if(left < 120) nameColor="var(--alert)";
+              else if(left < 300) nameColor="var(--warn)";
+
               return `
                 <div class="driver-row">
                   <div class="driver-name">
-                    <span>${d.name}<span class="medals">${medals(d.skill)}</span></span>
+                    <span style="color:${nameColor}">${d.name}<span class="medals">${medals(d.skill)}</span></span>
                     <span>${pct}%</span>
                   </div>
                   <div class="progress">
@@ -301,6 +313,7 @@ header {
               `;
             }).join("")}
           </div>
+
         `).join("")}
       </div>
     `;
@@ -308,13 +321,12 @@ header {
     const el = $("#carousel");
     el.scrollLeft = prevScroll;
 
-    /** cria dots */
+    /* dots */
     const dots = $("#dots");
     dots.innerHTML = tlist.map((_,i)=>`
       <div class="dot ${i===activeCardIndex?'active':''}"></div>
     `).join("");
 
-    /** atualiza ao fazer swipe */
     el.addEventListener("scroll", ()=>{
       const card = el.querySelector(".carousel-card");
       if(!card) return;
@@ -326,7 +338,6 @@ header {
       });
     });
 
-    // permitir clicar nos dots → vai direto para o card
     document.querySelectorAll(".dot").forEach((d,i)=>{
       d.addEventListener("click", ()=>{
         const el = $("#carousel");
