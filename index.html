@@ -130,7 +130,6 @@ header {
   .carousel-card { flex: 0 0 50%; }
 }
 
-/* DOTS mobile */
 #dots {
   display: flex;
   justify-content: center;
@@ -247,13 +246,17 @@ header {
               const color = d.check_in ? "var(--ok)" : "var(--alert)";
               const opacity = d.check_in?1:0.7;
 
-              /* <<< COR DO NOME — DESKTOP >>> */
+              /* <<< COR DO NOME >>> */
               let nameColor="var(--text)";
               if(left < 120) nameColor="var(--alert)";
               else if(left < 300) nameColor="var(--warn)";
 
+              /* <<< BORDA DO PILOTO (CHECK-IN) — AMARELA >>> */
+              const borderStyle = d.check_in
+                ? "border:2px solid var(--warn); border-radius:6px; padding:4px;"
+                : "";
               return `
-                <div class="driver-row" style="opacity:${opacity}">
+                <div class="driver-row" style="${borderStyle} opacity:${opacity}">
                   <div class="driver-name">
                     <span style="color:${nameColor}">${d.name}<span class="medals">${medals(d.skill)}</span></span>
                     <span>${pct}%</span>
@@ -272,7 +275,7 @@ header {
       </div>`;
   }
 
-  /* === MOBILE === */
+  /* === MOBILE COM DOTS === */
   function renderMobile(data){
     const tlist = data.teams || [];
     const main = $("#main");
@@ -281,7 +284,6 @@ header {
     main.innerHTML = `
       <div id="carousel">
         ${tlist.map(t=>`
-
           <div class="carousel-card" style="border-color:${t.color||"#888"}">
             <h3>${t.team_name}<span class="team-stars">${stars(t.category)}</span></h3>
 
@@ -292,13 +294,18 @@ header {
               const pct=Math.max(0,Math.min(100,Math.round(100*(done/Math.max(1,total)))));
               const color = d.check_in ? "var(--ok)" : "var(--alert)";
 
-              /* <<< COR DO NOME — MOBILE >>> */
+              /* <<< COR DO NOME >>> */
               let nameColor="var(--text)";
               if(left < 120) nameColor="var(--alert)";
               else if(left < 300) nameColor="var(--warn)";
 
+              /* <<< BORDA DO PILOTO (CHECK-IN) — AMARELA >>> */
+              const borderStyle = d.check_in
+                ? "border:2px solid var(--warn); border-radius:6px; padding:4px;"
+                : "";
+
               return `
-                <div class="driver-row">
+                <div class="driver-row" style="${borderStyle}">
                   <div class="driver-name">
                     <span style="color:${nameColor}">${d.name}<span class="medals">${medals(d.skill)}</span></span>
                     <span>${pct}%</span>
@@ -312,8 +319,8 @@ header {
                 </div>
               `;
             }).join("")}
-          </div>
 
+          </div>
         `).join("")}
       </div>
     `;
@@ -321,7 +328,6 @@ header {
     const el = $("#carousel");
     el.scrollLeft = prevScroll;
 
-    /* dots */
     const dots = $("#dots");
     dots.innerHTML = tlist.map((_,i)=>`
       <div class="dot ${i===activeCardIndex?'active':''}"></div>
