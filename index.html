@@ -392,10 +392,37 @@ header {
 })();
 </script>
 
+<!-- =============================================================== -->
+<!-- === SERVICE WORKER — UPDATE SILENCIOSO ========================= -->
+<!-- =============================================================== -->
 <script>
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./sw.js")
-    .catch(err => console.error("SW registration failed:", err));
+  navigator.serviceWorker.register("./sw.js").then(reg => {
+
+    // Se já existir um SW em estado "waiting"
+    if (reg.waiting) {
+      reg.waiting.postMessage({ type: "SKIP_WAITING" });
+    }
+
+    // Quando um novo SW é encontrado
+    reg.addEventListener("updatefound", () => {
+      const newWorker = reg.installing;
+      newWorker.addEventListener("statechange", () => {
+        if (
+          newWorker.state === "installed" &&
+          navigator.serviceWorker.controller
+        ) {
+          reg.waiting?.postMessage({ type: "SKIP_WAITING" });
+        }
+      });
+    });
+
+    // Quando um novo SW assume o controle → recarregar automaticamente
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      window.location.reload();
+    });
+
+  });
 }
 </script>
 

@@ -5,8 +5,15 @@ const ASSETS_TO_CACHE = [
   "./manifest.json",
   "./ui/js/main.js",
   "./ui/js/i18n.js",
-  "./styles.css"
+  "./styles.css",
+  "./fallback.html"   // <-- ADICIONADO
 ];
+
+self.addEventListener("message", event => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
+});
 
 // INSTALL — só faz cache dos assets listados (NÃO cacheia index.html)
 self.addEventListener("install", event => {
@@ -28,14 +35,16 @@ self.addEventListener("activate", event => {
 
 // FETCH — regra inteligente:
 // • index.html e "/" → SEMPRE DA REDE (sem cache)
-// • arquivos estáticos → "network first" com fallback no cache
+// • arquivos estáticos → network-first com fallback
 self.addEventListener("fetch", event => {
   const req = event.request;
   const url = new URL(req.url);
 
   // Nunca cacheie o index.html (previne versão presa)
   if (url.pathname === "/" || url.pathname.endsWith("index.html")) {
-    return event.respondWith(fetch(req).catch(() => caches.match("/fallback.html")));
+    return event.respondWith(
+      fetch(req).catch(() => caches.match("./fallback.html"))  // <-- CORRIGIDO
+    );
   }
 
   // Para demais arquivos, use network-first
@@ -48,6 +57,6 @@ self.addEventListener("fetch", event => {
           return res;
         });
       })
-      .catch(() => caches.match(req)) // fallback
+      .catch(() => caches.match(req))
   );
 });
