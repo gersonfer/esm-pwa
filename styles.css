@@ -94,6 +94,15 @@ header {
   margin-left:.3rem;
 }
 
+/* Card da equipe quando está em DECK */
+.team-card.deck {
+  background: #2e333a !important;
+}
+
+.team-card.deck .team-content {
+  background: #2e333a !important;
+}
+
 .driver-row{
   margin-bottom:.65rem;
 }

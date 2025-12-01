@@ -8,156 +8,10 @@
 <link rel="manifest" href="./manifest.json" />
 <meta name="theme-color" content="#10141a" />
 
-<style>
-:root {
-  --bg: #0f1115;
-  --card: #161a20;
-  --card-deck: #2e333a;
-  --accent: #ffcc00;
-  --text: #f6f6f6;
-  --muted: #bbb;
-  --ok: #2ecc71;
-  --alert: #e74c3c;
-  --warn: #f1c40f;
-}
-body {
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  display:flex;flex-direction:column;height:100vh;overflow:hidden;
-}
-header {
-  display:flex;justify-content:space-between;align-items:center;
-  padding:.6rem 1rem;background:#10141a80;font-size:1rem;
-}
-#track-badge{
-  display:none;
-  margin-left:.45rem;
-  background:var(--accent);
-  padding:.05rem .35rem;
-  border-radius:.35rem;
-  color:#000;
-  font-size:.8rem;
-}
-#timer {
-  font-family:monospace;font-weight:bold;
-  padding:.25rem .7rem;border-radius:.5rem;font-size:1rem;
-  border:3px solid var(--accent);
-  color:var(--accent);
-}
-#main {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-/* === DESKTOP GRID === */
-#grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  grid-auto-rows: 1fr;
-  gap: .8vw;
-  padding: .8vw;
-  height: 100%;
-  box-sizing: border-box;
-  overflow-y: auto;
-}
-
-.card-desktop{
-  background:var(--card);
-  border-radius:.8vw;
-  padding:1.0vw;
-  box-shadow:0 .4vw 1vw rgba(0,0,0,.25);
-  border:5px solid transparent;
-  display:flex;flex-direction:column;
-}
-.card-desktop.deck-active{
-  background:var(--card-deck) !important;
-}
-.card-desktop h3{
-  margin:0 0 .8rem 0;
-  color:var(--accent);
-  font-size:1.25rem;
-}
-.team-stars {
-  color:var(--muted);
-  font-size:1rem; margin-left:.3rem;
-}
-.driver-row{margin-bottom:.65rem;}
-.driver-name{
-  display:flex;justify-content:space-between;
-  font-size:1rem;
-}
-.medals{
-  color:var(--muted);
-  font-size:.6rem;
-  letter-spacing:1px;
-  margin-left:.25rem;
-}
-.progress {
-  width:100%;height:.5rem;background:#222b;border-radius:999px;
-  overflow:hidden;margin-top:.2rem;
-}
-.progress-bar{height:100%;transition:width .4s linear;}
-.driver-meta{
-  color:var(--muted);
-  font-size:.85rem;
-  display:flex;justify-content:space-between;margin-top:.1rem;
-}
-
-/* === MOBILE CAROUSEL === */
-#carousel {
-  display: flex;
-  height: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-}
-.carousel-card {
-  flex: 0 0 100%;
-  scroll-snap-align: start;
-  padding: 5vw;
-  box-sizing: border-box;
-  background: var(--card);
-  border-radius: 12px;
-  border: 5px solid transparent;
-  display: flex;
-  flex-direction: column;
-}
-@media (orientation: landscape) {
-  .carousel-card { flex: 0 0 50%; }
-}
-
-#dots {
-  display: flex;
-  justify-content: center;
-  gap: 6px;
-  padding: 10px 0;
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 20;
-}
-
-.dot {
-  width: 10px;
-  height: 10px;
-  background: #666;
-  border-radius: 50%;
-  opacity: 0.65;
-  transition: all 0.25s ease;
-}
-
-.dot.active {
-  background: var(--accent);
-  opacity: 1;
-  transform: scale(1.3);
-}
-</style>
+<!-- CSS EXTERNO -->
+<link rel="stylesheet" href="styles.css" />
 </head>
+
 <body>
 
 <header>
@@ -182,7 +36,7 @@ header {
 
   function formatTime(sec){
     if (typeof sec !== "number") return "--:--:--";
-    sec = Math.max(0,sec|0);
+    sec = Math.max(0, sec|0);
     const h = String(Math.floor(sec/3600)).padStart(2,"0");
     const m = String(Math.floor((sec%3600)/60)).padStart(2,"0");
     const s = String(sec%60).padStart(2,"0");
@@ -199,7 +53,7 @@ header {
   }
 
   function medals(skill){
-    const s=(skill||"").toLowerCase();
+    const s = (skill||"").toLowerCase();
     if(s==="platinum") return "●●●●";
     if(s==="gold")     return "●●●○";
     if(s==="silver")   return "●●○○";
@@ -219,107 +73,208 @@ header {
   function setTimerBorder(status){
     const el = $("#timer");
     const s = String(status || "").toLowerCase();
-    if (s==="running") el.style.borderColor="var(--ok)";
-    else if (s==="paused") el.style.borderColor="var(--alert)";
-    else if (s==="finished") el.style.borderColor="var(--warn)";
-    else el.style.borderColor="var(--accent)";
-    el.style.borderWidth="3px";
+
+    // limpa estilos para evitar herança de CSS prévia
+    el.style.border = "";
+    el.style.borderRadius = "8px";
+
+    if (s === "running") {
+        el.style.border = "3px solid var(--ok)";
+    }
+    else if (s === "paused") {
+        el.style.border = "3px solid var(--warn)";
+    }
+    else if (s.includes("over") || s.includes("finish")) {
+        el.style.border = "3px solid var(--alert)";
+    }
+    else {
+        el.style.border = "3px solid var(--accent)";
+    }
   }
 
-  /* === DESKTOP === */
+  function fmt(sec) {
+    if (!sec || sec < 0) sec = 0;
+    sec = Math.floor(sec);
+    const h = String(Math.floor(sec / 3600)).padStart(2, "0");
+    const m = String(Math.floor((sec % 3600) / 60)).padStart(2, "0");
+    const s = String(sec % 60).padStart(2, "0");
+    return `${h}:${m}:${s}`;
+  }
+
+  /* ===========================================================
+     DESKTOP RENDER
+  ============================================================ */
   function renderDesktop(data){
-    const tlist=data.teams||[];
-    $("#main").innerHTML=`
+    const teams=data.teams||[];
+
+    $("#main").innerHTML = `
       <div id="grid">
-        ${tlist.map(t=>{
-          const deck=t.deck?"deck-active":"";
+        ${teams.map(team=>{
           return `
-          <div class="card-desktop ${deck}" style="border-color:${t.color||"#888"}">
+            <div class="card-desktop ${team.deck ? "deck-active" : ""}"
+                 style="border-color:${team.color||"#888"}">
 
-            <h3>${t.team_name}<span class="team-stars">${stars(t.category)}</span></h3>
+              <h3>${team.team_name}
+                <span class="team-stars">${stars(team.category)}</span>
+              </h3>
 
-            ${(t.drivers||[]).map(d=>{
-              const total=d.stint_duration_sec||0;
-              const left=d.stint_left_sec||0;
-              const done=total-left;
-              const pct=Math.max(0,Math.min(100,Math.round(100*(done/Math.max(1,total)))));
-              const color = d.check_in ? "var(--ok)" : "var(--alert)";
-              const opacity = d.check_in?1:0.7;
+              ${(team.drivers||[]).map(d=>{
+                const total = d.stint_duration_sec||0;
+                const left  = d.stint_left_sec||0;
+                const done  = total-left;
+                const pct   = Math.max(0,Math.min(100,Math.round(100*(done/Math.max(1,total)))));
+                const progressColor = d.check_in ? "var(--ok)" : "var(--alert)";
+                const opacity = d.check_in ? 1 : 0.7;
 
-              /* <<< COR DO NOME >>> */
-              let nameColor="var(--text)";
-              if(left < 120) nameColor="var(--alert)";
-              else if(left < 300) nameColor="var(--warn)";
+                /* === COR DO NOME === */
+                let nameColor="var(--text)";
+                if(left < 120) nameColor="var(--alert)";
+                else if(left < 300) nameColor="var(--warn)";
 
-              /* <<< BORDA DO PILOTO (CHECK-IN) — AMARELA >>> */
-              const borderStyle = d.check_in
-                ? "border:2px solid var(--warn); border-radius:6px; padding:4px;"
-                : "";
-              return `
-                <div class="driver-row" style="${borderStyle} opacity:${opacity}">
-                  <div class="driver-name">
-                    <span style="color:${nameColor}">${d.name}<span class="medals">${medals(d.skill)}</span></span>
-                    <span>${pct}%</span>
+                /* =====================================================
+                   ESTILO DO PILOTO EM CHECK-IN  (CORRIGIDO)
+                   - borda original SEMPRE presente
+                   - condições especiais <5, <2, <1
+                ====================================================== */
+                let bg="", border="", nameBlack="", metaBlack="", pctBlack="";
+
+                if (d.check_in) {
+
+                  // Borda padrão do sistema
+                  border = "border:2px solid var(--warn)";
+
+                  if (left < 60) {        // < 1 min
+                    bg     = "background:#ff0000";
+                    border = "border:2px solid #000";
+                    nameBlack = "color:#000";
+                    metaBlack = "color:#000";
+                    pctBlack  = "color:#000";
+                  }
+                  else if (left < 120) {  // < 2 min
+                    bg     = "background:#ff0000";
+                    border = "border:2px solid #ffcc00";
+                    nameBlack = "color:#000";
+                    metaBlack = "color:#000";
+                    pctBlack  = "color:#000";
+                  }
+                  else if (left < 300) {  // < 5 min
+                    bg     = "background:#ffcc00";
+                    border = "border:2px solid #e74c3c";
+                    nameBlack = "color:#000";
+                    metaBlack = "color:#000";
+                    pctBlack  = "color:#000";
+                  }
+                }
+
+                // Estilo do contêiner
+                const boxStyle = d.check_in
+                  ? `${bg}; ${border}; border-radius:6px; padding:4px;`
+                  : `background:transparent;`;
+
+                return `
+                  <div class="driver-row" style="${boxStyle} opacity:${opacity}">
+                    <div class="driver-name">
+                      <span style="${d.check_in ? nameBlack : `color:${nameColor}`}; font-size:1.30rem; font-weight:600;">
+                        ${d.name}<span class="medals">${medals(d.skill)}</span>
+                      </span>
+                      <span style="${pctBlack}">${pct}%</span>
+                    </div>
+
+                    <div class="progress">
+                      <div class="progress-bar" style="width:${pct}%;background:${progressColor}"></div>
+                    </div>
+
+                    <div class="driver-meta">
+                      <span style="${metaBlack}; font-size:1.10rem; font-weight:600;">
+                        ${fmt(done)} / ${fmt(left)}
+                      </span>
+                    </div>
                   </div>
-                  <div class="progress">
-                    <div class="progress-bar" style="width:${pct}%;background:${color}"></div>
-                  </div>
-                  <div class="driver-meta">
-                    <span>${(done/60).toFixed(1)} / ${(left/60).toFixed(1)} min</span>
-                  </div>
-                </div>
-              `;
-            }).join("")}
-          </div>`;
+                `;
+              }).join("")}
+            </div>
+          `;
         }).join("")}
-      </div>`;
+      </div>
+    `;
   }
 
-  /* === MOBILE COM DOTS === */
+  /* ===========================================================
+     MOBILE RENDER
+  ============================================================ */
   function renderMobile(data){
-    const tlist = data.teams || [];
-    const main = $("#main");
+    const teams=data.teams||[];
+    const main=$("#main");
     const prevScroll = main.querySelector("#carousel")?.scrollLeft || 0;
 
     main.innerHTML = `
       <div id="carousel">
-        ${tlist.map(t=>`
-          <div class="carousel-card" style="border-color:${t.color||"#888"}">
-            <h3>${t.team_name}<span class="team-stars">${stars(t.category)}</span></h3>
+        ${teams.map(team=>`
+          <div class="carousel-card" style="border-color:${team.color||"#888"}">
 
-            ${(t.drivers||[]).map(d=>{
+            <h3>${team.team_name}
+              <span class="team-stars">${stars(team.category)}</span>
+            </h3>
+
+            ${(team.drivers||[]).map(d=>{
               const total=d.stint_duration_sec||0;
               const left=d.stint_left_sec||0;
               const done=total-left;
               const pct=Math.max(0,Math.min(100,Math.round(100*(done/Math.max(1,total)))));
-              const color = d.check_in ? "var(--ok)" : "var(--alert)";
+              const progressColor = d.check_in ? "var(--ok)" : "var(--alert)";
 
-              /* <<< COR DO NOME >>> */
               let nameColor="var(--text)";
               if(left < 120) nameColor="var(--alert)";
               else if(left < 300) nameColor="var(--warn)";
 
-              /* <<< BORDA DO PILOTO (CHECK-IN) — AMARELA >>> */
-              const borderStyle = d.check_in
-                ? "border:2px solid var(--warn); border-radius:6px; padding:4px;"
-                : "";
+              /* === CHECK-IN (MOBILE) — mesmo patch === */
+              let bg="", border="", font="";
+
+              if (d.check_in) {
+                border = "border:2px solid var(--warn)";
+
+                if (left < 60) {
+                  bg    = "background:#ff0000";
+                  border = "border:2px solid #000";
+                  font   = "color:#000";
+                }
+                else if (left < 120){
+                  bg    = "background:#ff0000";
+                  border = "border:2px solid #ffcc00";
+                  font   = "color:#000";
+                }
+                else if (left < 300){
+                  bg    = "background:#ffcc00";
+                  border = "border:2px solid #e74c3c";
+                  font   = "color:#000";
+                }
+              }
+
+              const boxStyle = d.check_in
+                ? `${bg}; ${border}; border-radius:6px; padding:4px; ${font};`
+                : `background:transparent;`;
 
               return `
-                <div class="driver-row" style="${borderStyle}">
+                <div class="driver-row" style="${boxStyle}">
                   <div class="driver-name">
-                    <span style="color:${nameColor}">${d.name}<span class="medals">${medals(d.skill)}</span></span>
-                    <span>${pct}%</span>
+                    <span style="${d.check_in ? nameBlack : `color:${nameColor}`}; font-size:1.30rem; font-weight:600;">
+                      ${d.name}<span class="medals">${medals(d.skill)}</span>
+                    </span>
+                    <span style="${pctBlack}">${pct}%</span>
                   </div>
+
                   <div class="progress">
-                    <div class="progress-bar" style="width:${pct}%;background:${color}"></div>
+                    <div class="progress-bar" style="width:${pct}%;background:${progressColor}"></div>
                   </div>
+
                   <div class="driver-meta">
-                    <span>${(done/60).toFixed(1)} / ${(left/60).toFixed(1)} min</span>
+                    <span style="${metaBlack}; font-size:1.10rem; font-weight:600;">
+                      ${fmt(done)} / ${fmt(left)}
+                    </span>
                   </div>
                 </div>
               `;
             }).join("")}
-
           </div>
         `).join("")}
       </div>
@@ -328,35 +283,25 @@ header {
     const el = $("#carousel");
     el.scrollLeft = prevScroll;
 
-    const dots = $("#dots");
-    dots.innerHTML = tlist.map((_,i)=>`
+    const dots=$("#dots");
+    dots.innerHTML = teams.map((_,i)=>`
       <div class="dot ${i===activeCardIndex?'active':''}"></div>
     `).join("");
 
     el.addEventListener("scroll", ()=>{
-      const card = el.querySelector(".carousel-card");
+      const card=el.querySelector(".carousel-card");
       if(!card) return;
-      const cardW = card.offsetWidth||1;
-      activeCardIndex = Math.round(el.scrollLeft / cardW);
+      const w=card.offsetWidth||1;
+      activeCardIndex=Math.round(el.scrollLeft/w);
 
       document.querySelectorAll(".dot").forEach((d,i)=>{
         d.classList.toggle("active", i===activeCardIndex);
       });
     });
-
-    document.querySelectorAll(".dot").forEach((d,i)=>{
-      d.addEventListener("click", ()=>{
-        const el = $("#carousel");
-        const card = el.querySelector(".carousel-card");
-        if (!card) return;
-        const cardW = card.offsetWidth;
-        activeCardIndex = i;
-        el.scrollTo({ left: i * cardW, behavior: "smooth" });
-      });
-    });
   }
 
   function render(data){
+    console.log("STATUS BRUTO RECEBIDO:", data.race_status);
     $("#timer").textContent=formatTime(data.race_left_sec);
     setTimerBorder(data.race_status);
     updateTrackBadge(data.track_name);
@@ -365,12 +310,11 @@ header {
     else renderDesktop(data);
 
     if (isMobile()) {
-      const el = $("#carousel");
+      const el=$("#carousel");
       if (el) {
-        const card = el.querySelector(".carousel-card");
+        const card=el.querySelector(".carousel-card");
         if (card) {
-          const cardW = card.offsetWidth;
-          el.scrollLeft = activeCardIndex * cardW;
+          el.scrollLeft = activeCardIndex * card.offsetWidth;
         }
       }
     }
@@ -389,22 +333,19 @@ header {
 
   render({race_left_sec:0,teams:[]});
   connect();
+
 })();
 </script>
 
-<!-- =============================================================== -->
-<!-- === SERVICE WORKER — UPDATE SILENCIOSO ========================= -->
-<!-- =============================================================== -->
 <script>
+/* === SERVICE WORKER === */
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("./sw.js").then(reg => {
 
-    // Se já existir um SW em estado "waiting"
     if (reg.waiting) {
       reg.waiting.postMessage({ type: "SKIP_WAITING" });
     }
 
-    // Quando um novo SW é encontrado
     reg.addEventListener("updatefound", () => {
       const newWorker = reg.installing;
       newWorker.addEventListener("statechange", () => {
@@ -417,7 +358,6 @@ if ("serviceWorker" in navigator) {
       });
     });
 
-    // Quando um novo SW assume o controle → recarregar automaticamente
     navigator.serviceWorker.addEventListener("controllerchange", () => {
       window.location.reload();
     });
