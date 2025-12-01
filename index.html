@@ -7,8 +7,6 @@
 
 <link rel="manifest" href="./manifest.json" />
 <meta name="theme-color" content="#10141a" />
-
-<!-- CSS EXTERNO -->
 <link rel="stylesheet" href="styles.css" />
 </head>
 
@@ -30,6 +28,9 @@
   const $ = q => document.querySelector(q);
   let activeCardIndex = 0;
 
+  /* ===========================================================
+     FUNÇÕES GERAIS
+  ============================================================ */
   function isMobile(){
     return window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 900;
   }
@@ -70,11 +71,13 @@
     }
   }
 
+  /* ===========================================================
+     BORDA DO CRONÔMETRO
+  ============================================================ */
   function setTimerBorder(status){
     const el = $("#timer");
     const s = String(status || "").toLowerCase();
 
-    // limpa estilos para evitar herança de CSS prévia
     el.style.border = "";
     el.style.borderRadius = "8px";
 
@@ -126,38 +129,31 @@
                 const progressColor = d.check_in ? "var(--ok)" : "var(--alert)";
                 const opacity = d.check_in ? 1 : 0.7;
 
-                /* === COR DO NOME === */
                 let nameColor="var(--text)";
                 if(left < 120) nameColor="var(--alert)";
                 else if(left < 300) nameColor="var(--warn)";
 
-                /* =====================================================
-                   ESTILO DO PILOTO EM CHECK-IN  (CORRIGIDO)
-                   - borda original SEMPRE presente
-                   - condições especiais <5, <2, <1
-                ====================================================== */
+                /* Estilos especiais */
                 let bg="", border="", nameBlack="", metaBlack="", pctBlack="";
 
                 if (d.check_in) {
-
-                  // Borda padrão do sistema
                   border = "border:2px solid var(--warn)";
 
-                  if (left < 60) {        // < 1 min
+                  if (left < 60) {
                     bg     = "background:#ff0000";
                     border = "border:2px solid #000";
                     nameBlack = "color:#000";
                     metaBlack = "color:#000";
                     pctBlack  = "color:#000";
                   }
-                  else if (left < 120) {  // < 2 min
+                  else if (left < 120) {
                     bg     = "background:#ff0000";
                     border = "border:2px solid #ffcc00";
                     nameBlack = "color:#000";
                     metaBlack = "color:#000";
                     pctBlack  = "color:#000";
                   }
-                  else if (left < 300) {  // < 5 min
+                  else if (left < 300) {
                     bg     = "background:#ffcc00";
                     border = "border:2px solid #e74c3c";
                     nameBlack = "color:#000";
@@ -166,7 +162,6 @@
                   }
                 }
 
-                // Estilo do contêiner
                 const boxStyle = d.check_in
                   ? `${bg}; ${border}; border-radius:6px; padding:4px;`
                   : `background:transparent;`;
@@ -200,7 +195,7 @@
   }
 
   /* ===========================================================
-     MOBILE RENDER
+     MOBILE RENDER (CORRIGIDO)
   ============================================================ */
   function renderMobile(data){
     const teams=data.teams||[];
@@ -227,26 +222,26 @@
               if(left < 120) nameColor="var(--alert)";
               else if(left < 300) nameColor="var(--warn)";
 
-              /* === CHECK-IN (MOBILE) — mesmo patch === */
+              /* Patch mobile */
               let bg="", border="", font="";
 
               if (d.check_in) {
                 border = "border:2px solid var(--warn)";
 
                 if (left < 60) {
-                  bg    = "background:#ff0000";
+                  bg = "background:#ff0000";
                   border = "border:2px solid #000";
-                  font   = "color:#000";
+                  font = "color:#000";
                 }
                 else if (left < 120){
-                  bg    = "background:#ff0000";
+                  bg = "background:#ff0000";
                   border = "border:2px solid #ffcc00";
-                  font   = "color:#000";
+                  font = "color:#000";
                 }
                 else if (left < 300){
-                  bg    = "background:#ffcc00";
+                  bg = "background:#ffcc00";
                   border = "border:2px solid #e74c3c";
-                  font   = "color:#000";
+                  font = "color:#000";
                 }
               }
 
@@ -257,10 +252,10 @@
               return `
                 <div class="driver-row" style="${boxStyle}">
                   <div class="driver-name">
-                    <span style="${d.check_in ? nameBlack : `color:${nameColor}`}; font-size:1.30rem; font-weight:600;">
+                    <span style="${font || `color:${nameColor}`}; font-size:1.30rem; font-weight:600;">
                       ${d.name}<span class="medals">${medals(d.skill)}</span>
                     </span>
-                    <span style="${pctBlack}">${pct}%</span>
+                    <span style="${font}">${pct}%</span>
                   </div>
 
                   <div class="progress">
@@ -268,7 +263,7 @@
                   </div>
 
                   <div class="driver-meta">
-                    <span style="${metaBlack}; font-size:1.10rem; font-weight:600;">
+                    <span style="${font}; font-size:1.10rem; font-weight:600;">
                       ${fmt(done)} / ${fmt(left)}
                     </span>
                   </div>
@@ -280,7 +275,7 @@
       </div>
     `;
 
-    const el = $("#carousel");
+    const el=$("#carousel");
     el.scrollLeft = prevScroll;
 
     const dots=$("#dots");
@@ -300,8 +295,10 @@
     });
   }
 
+  /* ===========================================================
+     RENDER
+  ============================================================ */
   function render(data){
-    console.log("STATUS BRUTO RECEBIDO:", data.race_status);
     $("#timer").textContent=formatTime(data.race_left_sec);
     setTimerBorder(data.race_status);
     updateTrackBadge(data.track_name);
@@ -320,6 +317,9 @@
     }
   }
 
+  /* ===========================================================
+     WEBSOCKET
+  ============================================================ */
   function connect(){
     const ws=new WebSocket(`wss://esm-live.onrender.com/ws`);
     ws.onmessage=ev=>{
@@ -335,35 +335,6 @@
   connect();
 
 })();
-</script>
-
-<script>
-/* === SERVICE WORKER === */
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./sw.js").then(reg => {
-
-    if (reg.waiting) {
-      reg.waiting.postMessage({ type: "SKIP_WAITING" });
-    }
-
-    reg.addEventListener("updatefound", () => {
-      const newWorker = reg.installing;
-      newWorker.addEventListener("statechange", () => {
-        if (
-          newWorker.state === "installed" &&
-          navigator.serviceWorker.controller
-        ) {
-          reg.waiting?.postMessage({ type: "SKIP_WAITING" });
-        }
-      });
-    });
-
-    navigator.serviceWorker.addEventListener("controllerchange", () => {
-      window.location.reload();
-    });
-
-  });
-}
 </script>
 
 </body>
