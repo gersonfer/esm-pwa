@@ -1,12 +1,21 @@
 {
   "name": "ESM Live Viewer",
   "short_name": "ESM Viewer",
-  "start_url": "/?theme=auto",
+  "start_url": "/esm-pwa/?theme=auto",
+  "scope": "/esm-pwa/",
   "display": "standalone",
   "background_color": "#10141a",
   "theme_color": "#10141a",
   "icons": [
-    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png" }
+    {
+      "src": "assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
   ]
 }
