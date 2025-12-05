@@ -213,3 +213,41 @@ header {
   cursor:pointer;
   box-shadow:0 -4px 12px rgba(0,0,0,0.3);
 }
+
+/* === POSITION TIMER (60s Rule) === */
+.pos-badge {
+  font-size: 0.9rem;
+  font-weight: bold;
+  margin-left: 8px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0,0,0,0.6);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  animation: pulse-text 1s infinite alternate;
+  border: 1px solid rgba(255,255,255,0.2); /* Borda para destacar badge */
+}
+
+.pos-bar-container {
+  width: 100%;
+  height: 8px;           /* ⬆️ Aumentei de 4px para 8px */
+  background: #3a3f46;   /* ⬆️ Mudei de Preto para Cinza (visível no fundo escuro) */
+  margin-top: 6px;       /* ⬆️ Mais espaço entre a barra principal e esta */
+  margin-bottom: 4px;    /* ⬆️ Espaço para o texto de baixo */
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.5); /* Profundidade */
+}
+
+.pos-bar-fill {
+  height: 100%;
+  display: block;        /* Garante que o elemento ocupe espaço */
+  transition: width 0.5s linear, background-color 0.3s ease;
+  box-shadow: 0 0 4px rgba(0,0,0,0.5); /* Sombra para destacar a cor */
+}
+
+@keyframes pulse-text {
+  from { opacity: 0.8; transform: scale(1); }
+  to { opacity: 1; transform: scale(1.05); text-shadow: 0 0 8px currentColor; }
+}

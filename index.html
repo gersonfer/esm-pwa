@@ -7,6 +7,8 @@
 
 <link rel="manifest" href="./manifest.json" />
 <meta name="theme-color" content="#10141a" />
+
+<!-- CSS EXTERNO -->
 <link rel="stylesheet" href="styles.css" />
 </head>
 
@@ -28,9 +30,6 @@
   const $ = q => document.querySelector(q);
   let activeCardIndex = 0;
 
-  /* ===========================================================
-     FUNÇÕES GERAIS
-  ============================================================ */
   function isMobile(){
     return window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 900;
   }
@@ -71,28 +70,16 @@
     }
   }
 
-  /* ===========================================================
-     BORDA DO CRONÔMETRO
-  ============================================================ */
   function setTimerBorder(status){
     const el = $("#timer");
     const s = String(status || "").toLowerCase();
-
     el.style.border = "";
     el.style.borderRadius = "8px";
 
-    if (s === "running") {
-        el.style.border = "3px solid var(--ok)";
-    }
-    else if (s === "paused") {
-        el.style.border = "3px solid var(--warn)";
-    }
-    else if (s.includes("over") || s.includes("finish")) {
-        el.style.border = "3px solid var(--alert)";
-    }
-    else {
-        el.style.border = "3px solid var(--accent)";
-    }
+    if (s === "running") el.style.border = "3px solid var(--ok)";
+    else if (s === "paused") el.style.border = "3px solid var(--warn)";
+    else if (s.includes("over") || s.includes("finish")) el.style.border = "3px solid var(--alert)";
+    else el.style.border = "3px solid var(--accent)";
   }
 
   function fmt(sec) {
@@ -104,89 +91,110 @@
     return `${h}:${m}:${s}`;
   }
 
+  // === HELPER PARA O DRIVER CARD ===
+  function renderDriverCard(d) {
+    const total = d.stint_duration_sec||0;
+    const left  = d.stint_left_sec||0;
+    const done  = total-left;
+    const pct   = Math.max(0,Math.min(100,Math.round(100*(done/Math.max(1,total)))));
+    const progressColor = d.check_in ? "var(--ok)" : "var(--alert)";
+    const opacity = d.check_in ? 1 : 0.7;
+
+    // Lógica de Cores do Nome
+    let nameColor="var(--text)";
+    if(left < 120) nameColor="var(--alert)";
+    else if(left < 300) nameColor="var(--warn)";
+
+    // Lógica de Bordas/Fundo (Check-in)
+    let bg="", border="", nameBlack="", metaBlack="", pctBlack="";
+
+    if (d.check_in) {
+      border = "border:2px solid var(--warn)";
+      if (left < 60) {
+        bg = "background:#ff0000"; border = "border:2px solid #000";
+        nameBlack = "color:#000"; metaBlack = "color:#000"; pctBlack = "color:#000";
+      } else if (left < 120) {
+        bg = "background:#ff0000"; border = "border:2px solid #ffcc00";
+        nameBlack = "color:#000"; metaBlack = "color:#000"; pctBlack = "color:#000";
+      } else if (left < 300) {
+        bg = "background:#ffcc00"; border = "border:2px solid #e74c3c";
+        nameBlack = "color:#000"; metaBlack = "color:#000"; pctBlack = "color:#000";
+      }
+    }
+
+    const boxStyle = d.check_in
+      ? `${bg}; ${border}; border-radius:6px; padding:4px;`
+      : `background:transparent;`;
+
+    // === LÓGICA DO POSITION TIMER (NOVO) ===
+    let posHtml = "";
+    let posBarHtml = "";
+    
+    // Verifica se position_time_sec existe e é um número (vem do JSON)
+    if (d.check_in && typeof d.position_time_sec === 'number') {
+        const pSec = d.position_time_sec;
+        
+        // Cores baseadas no tempo (Ciano -> Amarelo -> Vermelho)
+        let pColor = "#00ffff"; // Ciano
+        if (pSec > 40) pColor = "#ffff00"; // Amarelo
+        if (pSec > 50) pColor = "#ff0000"; // Vermelho
+
+        // Badge ao lado do nome
+        // Se o fundo estiver vermelho (stint crítico), usamos preto, senão a cor neon
+        const textColor = (nameBlack.includes("#000")) ? "#000" : pColor;
+        const textShadow = (nameBlack.includes("#000")) ? "none" : `0 0 5px ${pColor}`;
+        
+        posHtml = `<span class="pos-badge" style="color:${textColor}; text-shadow:${textShadow}">⏱ ${pSec}s</span>`;
+
+        // Barra inferior
+        const pPct = Math.min(100, (pSec / 60) * 100);
+        posBarHtml = `
+          <div class="pos-bar-container" style="display:block">
+            <div class="pos-bar-fill" style="width:${pPct}%; background-color:${pColor}"></div>
+          </div>
+        `;
+    }
+
+    return `
+      <div class="driver-row" style="${boxStyle} opacity:${opacity}">
+        <div class="driver-name">
+          <span style="${d.check_in ? nameBlack : `color:${nameColor}`}; font-size:1.30rem; font-weight:600; display:flex; align-items:center;">
+            ${d.name}
+            <span class="medals">${medals(d.skill)}</span>
+            ${posHtml} </span>
+          <span style="${pctBlack}">${pct}%</span>
+        </div>
+
+        <div class="progress">
+          <div class="progress-bar" style="width:${pct}%;background:${progressColor}"></div>
+        </div>
+        
+        ${posBarHtml}
+
+        <div class="driver-meta">
+          <span style="${metaBlack}; font-size:1.10rem; font-weight:600;">
+            ${fmt(done)} / ${fmt(left)}
+          </span>
+        </div>
+      </div>
+    `;
+  }
+
   /* ===========================================================
      DESKTOP RENDER
   ============================================================ */
   function renderDesktop(data){
     const teams=data.teams||[];
-
     $("#main").innerHTML = `
       <div id="grid">
         ${teams.map(team=>{
           return `
             <div class="card-desktop ${team.deck ? "deck-active" : ""}"
                  style="border-color:${team.color||"#888"}">
-
               <h3>${team.team_name}
                 <span class="team-stars">${stars(team.category)}</span>
               </h3>
-
-              ${(team.drivers||[]).map(d=>{
-                const total = d.stint_duration_sec||0;
-                const left  = d.stint_left_sec||0;
-                const done  = total-left;
-                const pct   = Math.max(0,Math.min(100,Math.round(100*(done/Math.max(1,total)))));
-                const progressColor = d.check_in ? "var(--ok)" : "var(--alert)";
-                const opacity = d.check_in ? 1 : 0.7;
-
-                let nameColor="var(--text)";
-                if(left < 120) nameColor="var(--alert)";
-                else if(left < 300) nameColor="var(--warn)";
-
-                /* Estilos especiais */
-                let bg="", border="", nameBlack="", metaBlack="", pctBlack="";
-
-                if (d.check_in) {
-                  border = "border:2px solid var(--warn)";
-
-                  if (left < 60) {
-                    bg     = "background:#ff0000";
-                    border = "border:2px solid #000";
-                    nameBlack = "color:#000";
-                    metaBlack = "color:#000";
-                    pctBlack  = "color:#000";
-                  }
-                  else if (left < 120) {
-                    bg     = "background:#ff0000";
-                    border = "border:2px solid #ffcc00";
-                    nameBlack = "color:#000";
-                    metaBlack = "color:#000";
-                    pctBlack  = "color:#000";
-                  }
-                  else if (left < 300) {
-                    bg     = "background:#ffcc00";
-                    border = "border:2px solid #e74c3c";
-                    nameBlack = "color:#000";
-                    metaBlack = "color:#000";
-                    pctBlack  = "color:#000";
-                  }
-                }
-
-                const boxStyle = d.check_in
-                  ? `${bg}; ${border}; border-radius:6px; padding:4px;`
-                  : `background:transparent;`;
-
-                return `
-                  <div class="driver-row" style="${boxStyle} opacity:${opacity}">
-                    <div class="driver-name">
-                      <span style="${d.check_in ? nameBlack : `color:${nameColor}`}; font-size:1.30rem; font-weight:600;">
-                        ${d.name}<span class="medals">${medals(d.skill)}</span>
-                      </span>
-                      <span style="${pctBlack}">${pct}%</span>
-                    </div>
-
-                    <div class="progress">
-                      <div class="progress-bar" style="width:${pct}%;background:${progressColor}"></div>
-                    </div>
-
-                    <div class="driver-meta">
-                      <span style="${metaBlack}; font-size:1.10rem; font-weight:600;">
-                        ${fmt(done)} / ${fmt(left)}
-                      </span>
-                    </div>
-                  </div>
-                `;
-              }).join("")}
+              ${(team.drivers||[]).map(d => renderDriverCard(d)).join("")}
             </div>
           `;
         }).join("")}
@@ -195,7 +203,7 @@
   }
 
   /* ===========================================================
-     MOBILE RENDER (CORRIGIDO)
+     MOBILE RENDER
   ============================================================ */
   function renderMobile(data){
     const teams=data.teams||[];
@@ -206,76 +214,16 @@
       <div id="carousel">
         ${teams.map(team=>`
           <div class="carousel-card" style="border-color:${team.color||"#888"}">
-
             <h3>${team.team_name}
               <span class="team-stars">${stars(team.category)}</span>
             </h3>
-
-            ${(team.drivers||[]).map(d=>{
-              const total=d.stint_duration_sec||0;
-              const left=d.stint_left_sec||0;
-              const done=total-left;
-              const pct=Math.max(0,Math.min(100,Math.round(100*(done/Math.max(1,total)))));
-              const progressColor = d.check_in ? "var(--ok)" : "var(--alert)";
-
-              let nameColor="var(--text)";
-              if(left < 120) nameColor="var(--alert)";
-              else if(left < 300) nameColor="var(--warn)";
-
-              /* Patch mobile */
-              let bg="", border="", font="";
-
-              if (d.check_in) {
-                border = "border:2px solid var(--warn)";
-
-                if (left < 60) {
-                  bg = "background:#ff0000";
-                  border = "border:2px solid #000";
-                  font = "color:#000";
-                }
-                else if (left < 120){
-                  bg = "background:#ff0000";
-                  border = "border:2px solid #ffcc00";
-                  font = "color:#000";
-                }
-                else if (left < 300){
-                  bg = "background:#ffcc00";
-                  border = "border:2px solid #e74c3c";
-                  font = "color:#000";
-                }
-              }
-
-              const boxStyle = d.check_in
-                ? `${bg}; ${border}; border-radius:6px; padding:4px; ${font};`
-                : `background:transparent;`;
-
-              return `
-                <div class="driver-row" style="${boxStyle}">
-                  <div class="driver-name">
-                    <span style="${font || `color:${nameColor}`}; font-size:1.30rem; font-weight:600;">
-                      ${d.name}<span class="medals">${medals(d.skill)}</span>
-                    </span>
-                    <span style="${font}">${pct}%</span>
-                  </div>
-
-                  <div class="progress">
-                    <div class="progress-bar" style="width:${pct}%;background:${progressColor}"></div>
-                  </div>
-
-                  <div class="driver-meta">
-                    <span style="${font}; font-size:1.10rem; font-weight:600;">
-                      ${fmt(done)} / ${fmt(left)}
-                    </span>
-                  </div>
-                </div>
-              `;
-            }).join("")}
+            ${(team.drivers||[]).map(d => renderDriverCard(d)).join("")}
           </div>
         `).join("")}
       </div>
     `;
 
-    const el=$("#carousel");
+    const el = $("#carousel");
     el.scrollLeft = prevScroll;
 
     const dots=$("#dots");
@@ -295,31 +243,16 @@
     });
   }
 
-  /* ===========================================================
-     RENDER
-  ============================================================ */
   function render(data){
+    // console.log("STATUS:", data.race_status);
     $("#timer").textContent=formatTime(data.race_left_sec);
     setTimerBorder(data.race_status);
     updateTrackBadge(data.track_name);
 
     if (isMobile()) renderMobile(data);
     else renderDesktop(data);
-
-    if (isMobile()) {
-      const el=$("#carousel");
-      if (el) {
-        const card=el.querySelector(".carousel-card");
-        if (card) {
-          el.scrollLeft = activeCardIndex * card.offsetWidth;
-        }
-      }
-    }
   }
 
-  /* ===========================================================
-     WEBSOCKET
-  ============================================================ */
   function connect(){
     const ws=new WebSocket(`wss://esm-live.onrender.com/ws`);
     ws.onmessage=ev=>{
@@ -335,6 +268,35 @@
   connect();
 
 })();
+</script>
+
+<script>
+/* === SERVICE WORKER === */
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./sw.js").then(reg => {
+
+    if (reg.waiting) {
+      reg.waiting.postMessage({ type: "SKIP_WAITING" });
+    }
+
+    reg.addEventListener("updatefound", () => {
+      const newWorker = reg.installing;
+      newWorker.addEventListener("statechange", () => {
+        if (
+          newWorker.state === "installed" &&
+          navigator.serviceWorker.controller
+        ) {
+          reg.waiting?.postMessage({ type: "SKIP_WAITING" });
+        }
+      });
+    });
+
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      window.location.reload();
+    });
+
+  });
+}
 </script>
 
 </body>
