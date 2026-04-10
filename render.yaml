@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: esm-live
+    env: docker
+    repo: https://github.com/gersonfer/esm-pwa
+    plan: free
+    branch: main
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 8080
