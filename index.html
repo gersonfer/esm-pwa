@@ -29,6 +29,7 @@
 (function(){
   const $ = q => document.querySelector(q);
   let activeCardIndex = 0;
+  let lastSnapshot = null;
 
   function isMobile(){
     return window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 900;
@@ -187,13 +188,14 @@
     const teams=data.teams||[];
     $("#main").innerHTML = `
       <div id="grid">
-        ${teams.map(team=>{
+        ${teams.map((team,i)=>{
           return `
             <div class="card-desktop ${team.deck ? "deck-active" : ""}"
                  style="border-color:${team.color||"#888"}">
               <h3>${team.team_name}
                 <span class="team-stars">${stars(team.category)}</span>
               </h3>
+              <button class="stints-btn" data-team-id="${i}" onclick="window._openTeamModal(${i})">📋 Stints</button>
               ${(team.drivers||[]).map(d => renderDriverCard(d)).join("")}
             </div>
           `;
@@ -212,11 +214,12 @@
 
     main.innerHTML = `
       <div id="carousel">
-        ${teams.map(team=>`
+        ${teams.map((team,i)=>`
           <div class="carousel-card" style="border-color:${team.color||"#888"}">
             <h3>${team.team_name}
               <span class="team-stars">${stars(team.category)}</span>
             </h3>
+            <button class="stints-btn" data-team-id="${i}" onclick="window._openTeamModal(${i})">📋 Stints</button>
             ${(team.drivers||[]).map(d => renderDriverCard(d)).join("")}
           </div>
         `).join("")}
@@ -245,6 +248,7 @@
 
   function render(data){
     // console.log("STATUS:", data.race_status);
+    lastSnapshot = data;
     $("#timer").textContent=formatTime(data.race_left_sec);
     setTimerBorder(data.race_status);
     updateTrackBadge(data.track_name);
@@ -266,6 +270,113 @@
 
   render({race_left_sec:0,teams:[]});
   connect();
+
+  // === STINTS MODAL ===
+  function fmtTs(ts){
+    if (!ts) return "—";
+    const d = new Date(ts);
+    const hh = String(d.getHours()).padStart(2,"0");
+    const mm = String(d.getMinutes()).padStart(2,"0");
+    const ss = String(d.getSeconds()).padStart(2,"0");
+    return `${hh}:${mm}:${ss}`;
+  }
+
+  function showModal(html){
+    const content = $("#stint-content");
+    content.innerHTML = html;
+    $("#stint-modal").classList.remove("hidden");
+  }
+
+  function closeModal(){
+    $("#stint-modal").classList.add("hidden");
+  }
+
+  function openTeamModal(teamId){
+    const snap = lastSnapshot;
+    if (!snap) return;
+    const team = (snap.teams||[])[teamId];
+    if (!team) return;
+
+    const stints = (snap.stints||[]).filter(s => s.team_id === teamId || s.team_name === team.team_name);
+    stints.sort((a,b) => new Date(a.started_at) - new Date(b.started_at));
+
+    let html = `<h2>${team.team_name}</h2>`;
+    html += `<button class="modal-close-btn" onclick="closeModal()">✕ Fechar</button>`;
+
+    if (stints.length === 0) {
+      html += `<p class="no-stints">Nenhum stint registrado.</p>`;
+    } else {
+      html += `<div class="stint-list">`;
+      stints.forEach((s, idx) => {
+        const driver = (team.drivers||[]).find(d => d.id === s.driver_id || d.name === s.driver_name);
+        const driverLabel = driver ? driver.name : (s.driver_name || "Desconhecido");
+        const started = fmtTs(s.started_at);
+        const ended = s.ended_at ? fmtTs(s.ended_at) : "AGORA";
+        const laps = s.laps != null ? ` • ${s.laps} voltas` : "";
+        const compound = s.compound ? ` • ${s.compound}` : "";
+        html += `
+          <div class="stint-row" onclick="window._openDriver(${teamId},'${(driver?driver.id||driver.name:s.driver_name||'').replace(/'/g,"\\'")}')">
+            <span class="stint-num">#${idx+1}</span>
+            <span class="stint-driver">${driverLabel}</span>
+            <span class="stint-time">${started} → ${ended}</span>
+            <span class="stint-detail">${laps}${compound}</span>
+          </div>
+        `;
+      });
+      html += `</div>`;
+    }
+
+    showModal(html);
+  }
+
+  function openDriver(teamId, driverId){
+    const snap = lastSnapshot;
+    if (!snap) return;
+    const team = (snap.teams||[])[teamId];
+    if (!team) return;
+
+    const driver = (team.drivers||[]).find(d => d.id === driverId || d.name === driverId);
+    const driverName = driver ? driver.name : driverId;
+
+    const stints = (snap.stints||[]).filter(s => {
+      const matchTeam = s.team_id === teamId || s.team_name === team.team_name;
+      const matchDriver = s.driver_id === driverId || s.driver_name === driverId;
+      return matchTeam && matchDriver;
+    });
+    stints.sort((a,b) => new Date(a.started_at) - new Date(b.started_at));
+
+    let html = `<button class="modal-back-btn" onclick="window._openTeamModal(${teamId})">← Voltar</button>`;
+    html += `<h2>${driverName}</h2>`;
+    html += `<p class="stint-subtitle">${team.team_name}</p>`;
+
+    if (stints.length === 0) {
+      html += `<p class="no-stints">Nenhum stint para este piloto.</p>`;
+    } else {
+      html += `<div class="stint-list">`;
+      stints.forEach((s, idx) => {
+        const started = fmtTs(s.started_at);
+        const ended = s.ended_at ? fmtTs(s.ended_at) : "AGORA";
+        const laps = s.laps != null ? ` • ${s.laps} voltas` : "";
+        const compound = s.compound ? ` • ${s.compound}` : "";
+        const duration = s.duration_sec ? ` • ${fmt(s.duration_sec)}` : "";
+        html += `
+          <div class="stint-row stint-detail">
+            <span class="stint-num">#${idx+1}</span>
+            <span class="stint-time">${started} → ${ended}</span>
+            <span class="stint-detail">${laps}${compound}${duration}</span>
+          </div>
+        `;
+      });
+      html += `</div>`;
+    }
+
+    showModal(html);
+  }
+
+  // Expose functions globally for onclick handlers
+  window._openTeamModal = openTeamModal;
+  window._openDriver = openDriver;
+  window.closeModal = closeModal;
 
 })();
 </script>
@@ -298,6 +409,12 @@ if ("serviceWorker" in navigator) {
   });
 }
 </script>
+
+<div id="stint-modal" class="hidden">
+  <div class="stint-modal-content">
+    <div id="stint-content"></div>
+  </div>
+</div>
 
 </body>
 </html>
