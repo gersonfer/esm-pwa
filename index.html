@@ -274,7 +274,7 @@
   // === STINTS MODAL ===
   function fmtTs(ts){
     if (!ts) return "—";
-    const d = new Date(ts);
+    const d = new Date(ts * 1000);
     const hh = String(d.getHours()).padStart(2,"0");
     const mm = String(d.getMinutes()).padStart(2,"0");
     const ss = String(d.getSeconds()).padStart(2,"0");
@@ -297,8 +297,7 @@
     const team = (snap.teams||[])[teamId];
     if (!team) return;
 
-    const stints = (snap.stints||[]).filter(s => s.team_id === teamId || s.team_name === team.team_name);
-    stints.sort((a,b) => new Date(a.started_at) - new Date(b.started_at));
+    const stints = (team.stint_history||[]).slice().sort((a,b) => a.started_at - b.started_at);
 
     let html = `<h2>${team.team_name}</h2>`;
     html += `<button class="modal-close-btn" onclick="closeModal()">✕ Fechar</button>`;
@@ -308,18 +307,16 @@
     } else {
       html += `<div class="stint-list">`;
       stints.forEach((s, idx) => {
-        const driver = (team.drivers||[]).find(d => d.id === s.driver_id || d.name === s.driver_name);
-        const driverLabel = driver ? driver.name : (s.driver_name || "Desconhecido");
+        const driverName = s.driver_name || "Desconhecido";
         const started = fmtTs(s.started_at);
         const ended = s.ended_at ? fmtTs(s.ended_at) : "AGORA";
-        const laps = s.laps != null ? ` • ${s.laps} voltas` : "";
-        const compound = s.compound ? ` • ${s.compound}` : "";
+        const duration = (s.started_at && s.ended_at) ? ` • ${fmt(s.ended_at - s.started_at)}` : "";
         html += `
-          <div class="stint-row" onclick="window._openDriver(${teamId},'${(driver?driver.id||driver.name:s.driver_name||'').replace(/'/g,"\\'")}')">
+          <div class="stint-row" onclick="window._openDriver(${teamId},'${driverName.replace(/'/g,"\\'")}')">
             <span class="stint-num">#${idx+1}</span>
-            <span class="stint-driver">${driverLabel}</span>
+            <span class="stint-driver">${driverName}</span>
             <span class="stint-time">${started} → ${ended}</span>
-            <span class="stint-detail">${laps}${compound}</span>
+            <span class="stint-detail">${duration}</span>
           </div>
         `;
       });
@@ -335,15 +332,12 @@
     const team = (snap.teams||[])[teamId];
     if (!team) return;
 
-    const driver = (team.drivers||[]).find(d => d.id === driverId || d.name === driverId);
-    const driverName = driver ? driver.name : driverId;
+    const driverName = typeof driverId === "string" ? driverId : driverId;
 
-    const stints = (snap.stints||[]).filter(s => {
-      const matchTeam = s.team_id === teamId || s.team_name === team.team_name;
-      const matchDriver = s.driver_id === driverId || s.driver_name === driverId;
-      return matchTeam && matchDriver;
-    });
-    stints.sort((a,b) => new Date(a.started_at) - new Date(b.started_at));
+    const stints = (team.stint_history||[])
+      .filter(s => String(s.driver_id) === String(driverId) || s.driver_name === driverId)
+      .slice()
+      .sort((a,b) => a.started_at - b.started_at);
 
     let html = `<button class="modal-back-btn" onclick="window._openTeamModal(${teamId})">← Voltar</button>`;
     html += `<h2>${driverName}</h2>`;
@@ -356,14 +350,12 @@
       stints.forEach((s, idx) => {
         const started = fmtTs(s.started_at);
         const ended = s.ended_at ? fmtTs(s.ended_at) : "AGORA";
-        const laps = s.laps != null ? ` • ${s.laps} voltas` : "";
-        const compound = s.compound ? ` • ${s.compound}` : "";
-        const duration = s.duration_sec ? ` • ${fmt(s.duration_sec)}` : "";
+        const duration = (s.started_at && s.ended_at) ? ` • ${fmt(s.ended_at - s.started_at)}` : "";
         html += `
           <div class="stint-row stint-detail">
             <span class="stint-num">#${idx+1}</span>
             <span class="stint-time">${started} → ${ended}</span>
-            <span class="stint-detail">${laps}${compound}${duration}</span>
+            <span class="stint-detail">${duration}</span>
           </div>
         `;
       });
