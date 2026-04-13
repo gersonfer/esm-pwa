@@ -85,11 +85,11 @@
 
       list.innerHTML = stints.map((s, idx) => {
         const driverName = s.driver_name || "Desconhecido";
-        const isActive = !s.ended_at;
         const duration = s.duration_sec != null ? formatTime(s.duration_sec) : "--:--:--";
-        const balance = isActive
-          ? (s.balance_sec != null ? formatTime(s.balance_sec) : "—")
-          : "TERMINADO";
+        const isExhausted = s.balance_sec === 0;
+        const balance = isExhausted
+          ? "TERMINADO"
+          : (s.balance_sec != null ? formatTime(s.balance_sec) : "—");
 
         return `
           <div class="stint-row stint-detail">
