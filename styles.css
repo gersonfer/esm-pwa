@@ -347,7 +347,7 @@ header {
 
 .stint-row {
   display: grid;
-  grid-template-columns: 40px 1fr auto;
+  grid-template-columns: 40px 1fr auto auto;
   gap: 8px;
   align-items: center;
   padding: 10px 12px;

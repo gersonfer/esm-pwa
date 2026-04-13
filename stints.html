@@ -30,24 +30,6 @@
   const $ = q => document.querySelector(q);
 
   // ── Reuse formatting from index.html ─────────────────────────
-  function fmt(sec) {
-    if (!sec || sec < 0) sec = 0;
-    sec = Math.floor(sec);
-    const h = String(Math.floor(sec / 3600)).padStart(2, "0");
-    const m = String(Math.floor((sec % 3600) / 60)).padStart(2, "0");
-    const s = String(sec % 60).padStart(2, "0");
-    return `${h}:${m}:${s}`;
-  }
-
-  function fmtTs(ts){
-    if (!ts) return "—";
-    const d = new Date(ts * 1000);
-    const hh = String(d.getHours()).padStart(2,"0");
-    const mm = String(d.getMinutes()).padStart(2,"0");
-    const ss = String(d.getSeconds()).padStart(2,"0");
-    return `${hh}:${mm}:${ss}`;
-  }
-
   function formatTime(sec){
     if (typeof sec !== "number") return "--:--:--";
     sec = Math.max(0, sec|0);
@@ -75,21 +57,17 @@
 
   // ── State ────────────────────────────────────────────────────
   const expectedTeamId = getTeamIdFromQuery();
-  let lastSnapshot = null;
 
-  // ── Render ───────────────────────────────────────────────────
+  // ── Render (dumb: render-only, no calculations) ──────────────
   function render(data){
-    lastSnapshot = data;
-    $("#timer").textContent = formatTime(data.race_left_sec);
+    $("#timer").textContent = formatTime(data.race_left_sec || 0);
     updateTrackBadge(data.track_name);
 
     if (!data || !data.teams) return;
 
-    // Find the team we care about by team_id
     const team = data.teams.find(t => t.team_id === expectedTeamId);
-    if (!team) return;  // team not in snapshot yet — wait
+    if (!team) return;
 
-    // Update page title with actual team name
     $("#page-title").textContent = `📋 ${team.team_name}`;
 
     const stints = (team.stint_history || []).slice().sort((a,b) => a.started_at - b.started_at);
@@ -107,20 +85,18 @@
 
       list.innerHTML = stints.map((s, idx) => {
         const driverName = s.driver_name || "Desconhecido";
-        const started = fmtTs(s.started_at);
         const isActive = !s.ended_at;
-        const ended = isActive ? "AGORA" : fmtTs(s.ended_at);
-        const elapsed = isActive
-          ? Math.floor(Date.now() / 1000) - s.started_at
-          : s.ended_at - s.started_at;
-        const duration = elapsed > 0 ? ` • ${fmt(elapsed)}` : "";
+        const duration = s.duration_sec != null ? formatTime(s.duration_sec) : "--:--:--";
+        const balance = isActive
+          ? (s.balance_sec != null ? formatTime(s.balance_sec) : "—")
+          : "TERMINADO";
 
         return `
           <div class="stint-row stint-detail">
             <span class="stint-num">#${idx + 1}</span>
             <span class="stint-driver">${driverName}</span>
-            <span class="stint-time">${started} → ${ended}</span>
-            <span class="stint-detail">${duration}</span>
+            <span class="stint-time">${duration}</span>
+            <span class="stint-detail">${balance}</span>
           </div>
         `;
       }).join("");
@@ -147,13 +123,7 @@
     `;
   } else {
     connect();
-    // Render empty state on load so user sees "Aguardando primeiro stint…"
     render({ race_left_sec: 0, teams: [{ team_id: expectedTeamId, team_name: "Carregando…", stint_history: [] }] });
-
-    // Live-update active stint durations every second (independent of snapshot frequency)
-    setInterval(() => {
-      if (lastSnapshot) render(lastSnapshot);
-    }, 1000);
   }
 
 })();
