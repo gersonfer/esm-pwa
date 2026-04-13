@@ -342,7 +342,34 @@ header {
 .stint-list {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.stint-header {
+  display: grid;
+  grid-template-columns: 36px 1fr 80px 90px;
+  gap: 0;
+  align-items: center;
+  padding: 8px 10px;
+  background: rgba(255, 204, 0, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.stint-header > span {
+  color: var(--accent);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stint-header .stint-dur,
+.stint-header .stint-bal {
+  text-align: right;
+  font-family: "SF Mono", "Fira Code", "Consolas", monospace;
 }
 
 .stint-row {
@@ -350,12 +377,16 @@ header {
   grid-template-columns: 36px 1fr 80px 90px;
   gap: 0;
   align-items: center;
-  padding: 8px 10px;
-  border-radius: 4px;
+  padding: 6px 10px;
   white-space: nowrap;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
 }
 
-.stint-row:nth-child(odd) {
+.stint-row:last-child {
+  border-bottom: none;
+}
+
+.stint-row:nth-child(even) {
   background: rgba(255, 255, 255, 0.02);
 }
 

@@ -83,7 +83,16 @@
       waitingMsg.style.display = "none";
       list.style.display = "";
 
-      list.innerHTML = stints.map((s, idx) => {
+      let html = `
+        <div class="stint-header">
+          <span class="stint-idx">#</span>
+          <span class="stint-drv">Driver</span>
+          <span class="stint-dur">Duração</span>
+          <span class="stint-bal">Saldo</span>
+        </div>
+      `;
+
+      stints.forEach((s, idx) => {
         const driverName = s.driver_name || "Desconhecido";
         const duration = s.duration_sec != null ? formatTime(s.duration_sec) : "--:--:--";
         const isExhausted = s.balance_sec === 0;
@@ -91,7 +100,7 @@
           ? "TERMINADO"
           : (s.balance_sec != null ? formatTime(s.balance_sec) : "—");
 
-        return `
+        html += `
           <div class="stint-row">
             <span class="stint-idx">#${idx + 1}</span>
             <span class="stint-drv">${driverName}</span>
@@ -99,7 +108,9 @@
             <span class="stint-bal ${isExhausted ? 'bal-exhausted' : ''}">${balance}</span>
           </div>
         `;
-      }).join("");
+      });
+
+      list.innerHTML = html;
     }
   }
 
