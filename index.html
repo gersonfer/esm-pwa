@@ -195,7 +195,7 @@
               <h3>${team.team_name}
                 <span class="team-stars">${stars(team.category)}</span>
               </h3>
-              <button class="stints-btn" data-team-id="${i}" onclick="window._openTeamModal(${i})">📋 Stints</button>
+              <button class="stints-btn" onclick="window.location.href='stints.html?team=${team.team_id}'">📋 Stints</button>
               ${(team.drivers||[]).map(d => renderDriverCard(d)).join("")}
             </div>
           `;
@@ -219,7 +219,7 @@
             <h3>${team.team_name}
               <span class="team-stars">${stars(team.category)}</span>
             </h3>
-            <button class="stints-btn" data-team-id="${i}" onclick="window._openTeamModal(${i})">📋 Stints</button>
+            <button class="stints-btn" onclick="window.location.href='stints.html?team=${team.team_id}'">📋 Stints</button>
             ${(team.drivers||[]).map(d => renderDriverCard(d)).join("")}
           </div>
         `).join("")}

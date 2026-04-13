@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="auto">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>📋 ESM Live — Stints</title>
+<link rel="manifest" href="./manifest.json" />
+<meta name="theme-color" content="#10141a" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+
+<header>
+  <span>
+    <a href="index.html" class="back-link">← Race</a>
+    <span id="page-title">📋 Stints</span>
+    <span id="track-badge"></span>
+  </span>
+  <span id="timer">--:--:--</span>
+</header>
+
+<div id="stints-body">
+  <p id="waiting-msg" class="no-stints">Aguardando primeiro stint…</p>
+  <div id="stints-list" class="stint-list" style="display:none"></div>
+</div>
+
+<script>
+(function(){
+  const $ = q => document.querySelector(q);
+
+  // ── Reuse formatting from index.html ─────────────────────────
+  function fmt(sec) {
+    if (!sec || sec < 0) sec = 0;
+    sec = Math.floor(sec);
+    const h = String(Math.floor(sec / 3600)).padStart(2, "0");
+    const m = String(Math.floor((sec % 3600) / 60)).padStart(2, "0");
+    const s = String(sec % 60).padStart(2, "0");
+    return `${h}:${m}:${s}`;
+  }
+
+  function fmtTs(ts){
+    if (!ts) return "—";
+    const d = new Date(ts * 1000);
+    const hh = String(d.getHours()).padStart(2,"0");
+    const mm = String(d.getMinutes()).padStart(2,"0");
+    const ss = String(d.getSeconds()).padStart(2,"0");
+    return `${hh}:${mm}:${ss}`;
+  }
+
+  function formatTime(sec){
+    if (typeof sec !== "number") return "--:--:--";
+    sec = Math.max(0, sec|0);
+    const h = String(Math.floor(sec/3600)).padStart(2,"0");
+    const m = String(Math.floor((sec%3600)/60)).padStart(2,"0");
+    const s = String(sec%60).padStart(2,"0");
+    return `${h}:${m}:${s}`;
+  }
+
+  function updateTrackBadge(name){
+    const badge = $("#track-badge");
+    if (!name) { badge.style.display = "none"; return; }
+    badge.style.display = "inline-block";
+    badge.textContent = name;
+  }
+
+  // ── Read team_id from URL ────────────────────────────────────
+  function getTeamIdFromQuery(){
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get("team");
+    if (raw === null) return null;
+    const n = Number(raw);
+    return isNaN(n) ? null : n;
+  }
+
+  // ── State ────────────────────────────────────────────────────
+  const expectedTeamId = getTeamIdFromQuery();
+  let lastSnapshot = null;
+
+  // ── Render ───────────────────────────────────────────────────
+  function render(data){
+    lastSnapshot = data;
+    $("#timer").textContent = formatTime(data.race_left_sec);
+    updateTrackBadge(data.track_name);
+
+    if (!data || !data.teams) return;
+
+    // Find the team we care about by team_id
+    const team = data.teams.find(t => t.team_id === expectedTeamId);
+    if (!team) return;  // team not in snapshot yet — wait
+
+    // Update page title with actual team name
+    $("#page-title").textContent = `📋 ${team.team_name}`;
+
+    const stints = (team.stint_history || []).slice().sort((a,b) => a.started_at - b.started_at);
+
+    const waitingMsg = $("#waiting-msg");
+    const list = $("#stints-list");
+
+    if (stints.length === 0) {
+      waitingMsg.style.display = "";
+      waitingMsg.textContent = "Aguardando primeiro stint…";
+      list.style.display = "none";
+    } else {
+      waitingMsg.style.display = "none";
+      list.style.display = "";
+
+      list.innerHTML = stints.map((s, idx) => {
+        const driverName = s.driver_name || "Desconhecido";
+        const started = fmtTs(s.started_at);
+        const ended = s.ended_at ? fmtTs(s.ended_at) : "AGORA";
+        const duration = (s.started_at && s.ended_at)
+          ? ` • ${fmt(s.ended_at - s.started_at)}`
+          : "";
+
+        return `
+          <div class="stint-row stint-detail">
+            <span class="stint-num">#${idx + 1}</span>
+            <span class="stint-driver">${driverName}</span>
+            <span class="stint-time">${started} → ${ended}</span>
+            <span class="stint-detail">${duration}</span>
+          </div>
+        `;
+      }).join("");
+    }
+  }
+
+  // ── WebSocket connection ─────────────────────────────────────
+  function connect(){
+    const ws = new WebSocket(`wss://esm-live.onrender.com/ws`);
+    ws.onmessage = ev => {
+      try {
+        const data = JSON.parse(ev.data);
+        if (data.type !== "hello") render(data);
+      } catch(_) {}
+    };
+    ws.onclose = () => setTimeout(connect, 1000);
+  }
+
+  // ── Init ─────────────────────────────────────────────────────
+  if (expectedTeamId === null) {
+    $("#stints-body").innerHTML = `
+      <p class="no-stints">team_id não informado na URL.</p>
+      <p class="no-stints"><a href="index.html" style="color:var(--accent)">← Voltar</a></p>
+    `;
+  } else {
+    connect();
+    // Render empty state on load so user sees "Aguardando primeiro stint…"
+    render({ race_left_sec: 0, teams: [{ team_id: expectedTeamId, team_name: "Carregando…", stint_history: [] }] });
+  }
+
+})();
+</script>
+
+</body>
+</html>
