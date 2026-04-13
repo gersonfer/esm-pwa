@@ -108,10 +108,12 @@
       list.innerHTML = stints.map((s, idx) => {
         const driverName = s.driver_name || "Desconhecido";
         const started = fmtTs(s.started_at);
-        const ended = s.ended_at ? fmtTs(s.ended_at) : "AGORA";
-        const duration = (s.started_at && s.ended_at)
-          ? ` • ${fmt(s.ended_at - s.started_at)}`
-          : "";
+        const isActive = !s.ended_at;
+        const ended = isActive ? "AGORA" : fmtTs(s.ended_at);
+        const elapsed = isActive
+          ? Math.floor(Date.now() / 1000) - s.started_at
+          : s.ended_at - s.started_at;
+        const duration = elapsed > 0 ? ` • ${fmt(elapsed)}` : "";
 
         return `
           <div class="stint-row stint-detail">
@@ -147,6 +149,11 @@
     connect();
     // Render empty state on load so user sees "Aguardando primeiro stint…"
     render({ race_left_sec: 0, teams: [{ team_id: expectedTeamId, team_name: "Carregando…", stint_history: [] }] });
+
+    // Live-update active stint durations every second (independent of snapshot frequency)
+    setInterval(() => {
+      if (lastSnapshot) render(lastSnapshot);
+    }, 1000);
   }
 
 })();
