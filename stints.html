@@ -92,11 +92,11 @@
           : (s.balance_sec != null ? formatTime(s.balance_sec) : "—");
 
         return `
-          <div class="stint-row stint-detail">
-            <span class="stint-num">#${idx + 1}</span>
-            <span class="stint-driver">${driverName}</span>
-            <span class="stint-time">${duration}</span>
-            <span class="stint-detail">${balance}</span>
+          <div class="stint-row">
+            <span class="stint-idx">#${idx + 1}</span>
+            <span class="stint-drv">${driverName}</span>
+            <span class="stint-dur">${duration}</span>
+            <span class="stint-bal ${isExhausted ? 'bal-exhausted' : ''}">${balance}</span>
           </div>
         `;
       }).join("");

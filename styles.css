@@ -342,57 +342,62 @@ header {
 .stint-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 2px;
 }
 
 .stint-row {
   display: grid;
-  grid-template-columns: 40px 1fr auto auto;
-  gap: 8px;
+  grid-template-columns: 36px 1fr 80px 90px;
+  gap: 0;
   align-items: center;
-  padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.2s ease;
+  padding: 8px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
 }
 
-.stint-row:hover {
-  background: rgba(255, 204, 0, 0.1);
+.stint-row:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.02);
 }
 
-.stint-row.stint-detail {
-  cursor: default;
-}
-
-.stint-row.stint-detail:hover {
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.stint-num {
+/* ── Column 1: stint index ── */
+.stint-idx {
   color: var(--muted);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
+  text-align: left;
 }
 
-.stint-driver {
+/* ── Column 2: driver name ── */
+.stint-drv {
   color: var(--text);
-  font-weight: 600;
-  font-size: 0.95rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.stint-time {
-  color: var(--accent);
-  font-family: monospace;
+/* ── Column 3: duration (monospace, right-aligned) ── */
+.stint-dur {
+  color: var(--muted);
+  font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+  font-size: 0.85rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Column 4: balance (monospace, right-aligned, color-coded) ── */
+.stint-bal {
+  font-family: "SF Mono", "Fira Code", "Consolas", monospace;
   font-size: 0.85rem;
   font-weight: 600;
   text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
 }
 
-.stint-detail {
-  color: var(--muted);
-  font-size: 0.8rem;
-  grid-column: 1 / -1;
+.stint-bal.bal-exhausted {
+  color: var(--alert);
+  font-weight: 700;
 }
 
 /* === STINTS BUTTON (in team cards) === */
