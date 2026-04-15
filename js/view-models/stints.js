@@ -43,10 +43,26 @@ export function buildStintViewModel(team, raceStatus) {
   const historical = raw.map((s, idx) => {
     let duration = s.duration_sec ?? null;
 
-    // 🔥 reconstrução por segmento (busca último do mesmo piloto)
+    const currentDriverId = s.driver_id ?? null;
+    const currentDriverName = s.driver_name ?? null;
+
+    // 🔥 reconstrução por segmento (procura o último registro do mesmo piloto)
     const prevSameDriver = [...raw.slice(0, idx)]
       .reverse()
-      .find(p => p.driver_id === s.driver_id);
+      .find(p => {
+        const prevDriverId = p.driver_id ?? null;
+        const prevDriverName = p.driver_name ?? null;
+
+        if (currentDriverId != null && prevDriverId != null) {
+          return String(prevDriverId) === String(currentDriverId);
+        }
+
+        if (currentDriverName != null && prevDriverName != null) {
+          return prevDriverName.trim().toLowerCase() === currentDriverName.trim().toLowerCase();
+        }
+
+        return false;
+      });
 
     if (
       prevSameDriver &&
