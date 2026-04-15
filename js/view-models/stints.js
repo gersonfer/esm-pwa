@@ -35,19 +35,37 @@ export function buildStintViewModel(team, raceStatus) {
   if (!team) return [];
 
   // ── Historical stints (completed, authoritative) ────────────
-  const historical = (team.stint_history || [])
+  const raw = (team.stint_history || [])
     .filter(s => s.ended_at != null)
     .slice()
-    .sort((a, b) => a.started_at - b.started_at)
-    .map(s => ({
+    .sort((a, b) => a.started_at - b.started_at);
+
+  const historical = raw.map((s, idx) => {
+    let duration = s.duration_sec ?? null;
+
+    // 🔥 reconstrução por segmento
+    if (idx > 0) {
+      const prev = raw[idx - 1];
+
+      if (
+        prev.driver_id === s.driver_id &&
+        prev.balance_sec != null &&
+        s.balance_sec != null
+      ) {
+        duration = prev.balance_sec - s.balance_sec;
+      }
+    }
+
+    return {
       driver_name: s.driver_name,
       driver_id: s.driver_id ?? null,
       started_at: s.started_at ?? null,
       ended_at: s.ended_at ?? null,
-      duration_sec: s.duration_sec ?? null,
+      duration_sec: duration,
       balance_sec: s.balance_sec ?? null,
       _active: false
-    }));
+    };
+  });
 
   // ── Race status gate ─────────────────────────────────────────
   const normalizedStatus = String(raceStatus || "").toLowerCase();
