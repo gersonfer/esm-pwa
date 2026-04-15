@@ -41,35 +41,36 @@ export function buildStintViewModel(team, raceStatus) {
     .sort((a, b) => a.started_at - b.started_at);
 
   const historical = raw.map((s, idx) => {
-    let duration = s.duration_sec ?? null;
-
     const currentDriverId = s.driver_id ?? null;
     const currentDriverName = s.driver_name ?? null;
 
-    // 🔥 reconstrução por segmento (procura o último registro do mesmo piloto)
+    // 🔥 encontra o último segmento anterior do mesmo piloto
     const prevSameDriver = [...raw.slice(0, idx)]
       .reverse()
       .find(p => {
-        const prevDriverId = p.driver_id ?? null;
-        const prevDriverName = p.driver_name ?? null;
+        const pId = p.driver_id ?? null;
+        const pName = p.driver_name ?? null;
 
-        if (currentDriverId != null && prevDriverId != null) {
-          return String(prevDriverId) === String(currentDriverId);
+        if (currentDriverId != null && pId != null) {
+          return String(pId) === String(currentDriverId);
         }
 
-        if (currentDriverName != null && prevDriverName != null) {
-          return prevDriverName.trim().toLowerCase() === currentDriverName.trim().toLowerCase();
+        if (currentDriverName != null && pName != null) {
+          return pName.trim().toLowerCase() === currentDriverName.trim().toLowerCase();
         }
 
         return false;
       });
 
-    if (
-      prevSameDriver &&
-      prevSameDriver.balance_sec != null &&
-      s.balance_sec != null
-    ) {
-      duration = Math.max(0, prevSameDriver.balance_sec - s.balance_sec);
+    // 🎯 REGRA FINAL
+    let duration;
+
+    if (prevSameDriver && prevSameDriver.balance_sec != null) {
+      // segmentos seguintes → usa saldo anterior
+      duration = prevSameDriver.balance_sec;
+    } else {
+      // primeiro segmento → total do stint
+      duration = s.duration_sec ?? null;
     }
 
     return {
