@@ -35,31 +35,41 @@ export function buildStintViewModel(team) {
 
   // ── Historical stints (completed, authoritative) ────────────
   const historical = (team.stint_history || [])
-    .filter(s => s.ended_at != null)            // only finished stints
-    .slice()                                     // shallow clone
-    .sort((a, b) => a.started_at - b.started_at); // chronological
+    .filter(s => s.ended_at != null)
+    .slice()
+    .sort((a, b) => a.started_at - b.started_at)
+    .map(s => ({
+      driver_name: s.driver_name,
+      driver_id: s.driver_id ?? null,
+      started_at: s.started_at ?? null,
+      ended_at: s.ended_at ?? null,
+      duration_sec: s.duration_sec ?? null,
+      balance_sec: s.balance_sec ?? null,
+      _active: false
+    }));
 
   // ── Active stint (live, derived from driver state) ──────────
   const activeDriver = (team.drivers || []).find(d => d.check_in);
 
-  if (!activeDriver) return historical;         // no one driving
+  if (!activeDriver) return historical;
 
   const elapsed = Math.max(
     0,
     (activeDriver.stint_duration_sec || 0) - (activeDriver.stint_left_sec || 0)
   );
+
   const balance = activeDriver.stint_left_sec || 0;
 
   return [
     ...historical,
     {
       driver_name: activeDriver.name || "Desconhecido",
-      driver_id: activeDriver.driver_id || null,
-      started_at: null,                         // unknown from snapshot
-      ended_at: null,                           // still active
-      duration_sec: elapsed,                    // live derived value
-      balance_sec: balance,                     // live derived value
-      _active: true                             // UI marker
+      driver_id: activeDriver.driver_id ?? null,
+      started_at: null,
+      ended_at: null,
+      duration_sec: elapsed,
+      balance_sec: balance,
+      _active: true
     }
   ];
 }
