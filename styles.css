@@ -431,6 +431,35 @@ header {
   font-weight: 700;
 }
 
+/* ── Active stint row (live, derived from driver state) ── */
+.stint-row.stint-active {
+  background: rgba(46, 204, 113, 0.08);
+  border-left: 3px solid var(--ok);
+}
+
+.stint-row.stint-active .stint-drv {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.active-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--ok);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  animation: active-pulse 2s ease-in-out infinite;
+}
+
+@keyframes active-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
 /* === STINTS BUTTON (in team cards) === */
 .stints-btn {
   display: inline-flex;
