@@ -43,17 +43,17 @@ export function buildStintViewModel(team, raceStatus) {
   const historical = raw.map((s, idx) => {
     let duration = s.duration_sec ?? null;
 
-    // 🔥 reconstrução por segmento
-    if (idx > 0) {
-      const prev = raw[idx - 1];
+    // 🔥 reconstrução por segmento (busca último do mesmo piloto)
+    const prevSameDriver = [...raw.slice(0, idx)]
+      .reverse()
+      .find(p => p.driver_id === s.driver_id);
 
-      if (
-        prev.driver_id === s.driver_id &&
-        prev.balance_sec != null &&
-        s.balance_sec != null
-      ) {
-        duration = prev.balance_sec - s.balance_sec;
-      }
+    if (
+      prevSameDriver &&
+      prevSameDriver.balance_sec != null &&
+      s.balance_sec != null
+    ) {
+      duration = Math.max(0, prevSameDriver.balance_sec - s.balance_sec);
     }
 
     return {
