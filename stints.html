@@ -63,7 +63,7 @@
 
       $("#page-title").textContent = `📋 ${team.team_name}`;
 
-      const stints = buildStintViewModel(team);
+      const stints = buildStintViewModel(team, data.race_status);
 
       const waitingMsg = $("#waiting-msg");
       const list = $("#stints-list");

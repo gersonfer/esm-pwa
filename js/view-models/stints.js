@@ -18,6 +18,7 @@
  * @param {Object} team - Snapshot team object from WebSocket.
  * @param {Array}  team.stint_history - Historical stint records (immutable).
  * @param {Array}  team.drivers - Live driver state (mutable).
+ * @param {string} raceStatus - Current race status from snapshot.
  * @returns {Array<Object>} Flat array of stint view models.
  *
  * Each returned object has:
@@ -29,7 +30,7 @@
  *   - ended_at: number|null
  *   - _active: boolean (true only for the live stint)
  */
-export function buildStintViewModel(team) {
+export function buildStintViewModel(team, raceStatus) {
   // Defensive: handle null/undefined team
   if (!team) return [];
 
@@ -48,10 +49,20 @@ export function buildStintViewModel(team) {
       _active: false
     }));
 
+  // ── Race status gate ─────────────────────────────────────────
+  const normalizedStatus = String(raceStatus || "").toLowerCase();
+  const raceFinished =
+    normalizedStatus === "finished" ||
+    normalizedStatus === "race_over" ||
+    normalizedStatus === "stopped" ||
+    normalizedStatus === "ended" ||
+    normalizedStatus === "completed";
+
   // ── Active stint (live, derived from driver state) ──────────
   const activeDriver = (team.drivers || []).find(d => d.check_in);
 
-  if (!activeDriver) return historical;
+  // No active driver or race already ended → only historical rows
+  if (!activeDriver || raceFinished) return historical;
 
   const elapsed = Math.max(
     0,
@@ -59,6 +70,9 @@ export function buildStintViewModel(team) {
   );
 
   const balance = activeDriver.stint_left_sec || 0;
+
+  // If balance reached zero, do not show as active anymore
+  if (balance === 0) return historical;
 
   return [
     ...historical,
