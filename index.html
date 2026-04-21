@@ -46,20 +46,22 @@
 
   function stars(cat){
     const c=(cat||"").toUpperCase();
-    if(c==="LIGHT") return "★☆☆☆";
-    if(c==="AM") return "★★☆☆";
-    if(c==="PRO-AM") return "★★★☆";
-    if(c==="PRO") return "★★★★";
-    return "";
+    let l = "";
+    if(c==="LIGHT") l = "L";
+    else if(c==="AM") l = "A";
+    else if(c==="PRO-AM") l = "S";
+    else if(c==="PRO") l = "P";
+    return l ? `<span class="badge-letter">${l}</span>` : "";
   }
 
   function medals(skill){
     const s = (skill||"").toLowerCase();
-    if(s==="platinum") return "●●●●";
-    if(s==="gold")     return "●●●○";
-    if(s==="silver")   return "●●○○";
-    if(s==="bronze")   return "●○○○";
-    return "";
+    let l = "";
+    if(s==="platinum") l = "P";
+    else if(s==="gold") l = "G";
+    else if(s==="silver") l = "S";
+    else if(s==="bronze") l = "B";
+    return l ? `<span class="badge-letter">${l}</span>` : "";
   }
 
   function updateTrackBadge(name){
@@ -98,8 +100,6 @@
     const left  = d.stint_left_sec||0;
     const done  = total-left;
     const pct   = Math.max(0,Math.min(100,Math.round(100*(done/Math.max(1,total)))));
-    const progressColor = d.check_in ? "var(--ok)" : "var(--alert)";
-    const opacity = d.check_in ? 1 : 0.7;
 
     // Lógica de Cores do Nome
     let nameColor="var(--text)";
@@ -107,61 +107,43 @@
     else if(left < 300) nameColor="var(--warn)";
 
     // === LÓGICA DO POSITION TIMER ===
-    let posHtml = "";
-    let posBarHtml = "";
-    
-    // Verifica se position_time_sec existe e é um número (vem do JSON)
+    let checkInHtml = "";
     if (d.check_in && typeof d.position_time_sec === 'number') {
         const pSec = d.position_time_sec;
         let pColor = "#00ffff"; // Ciano
         if (pSec > 40) pColor = "#ffff00"; // Amarelo
         if (pSec > 50) pColor = "#ff0000"; // Vermelho
-
-        const textColor = pColor;
-        const textShadow = `0 0 5px ${pColor}`;
         
-        posHtml = `<span class="pos-badge" style="color:${textColor}; text-shadow:${textShadow}">⏱ ${pSec}s</span>`;
-
-        const pPct = Math.min(100, (pSec / 60) * 100);
-        posBarHtml = `
-          <div class="pos-bar-container" style="display:block">
-            <div class="pos-bar-fill" style="width:${pPct}%; background-color:${pColor}"></div>
-          </div>
-        `;
+        checkInHtml = `<span class="pos-badge" style="color:${pColor}; text-shadow:0 0 5px ${pColor};">⏱ ${pSec}s</span>`;
     }
 
-    const stateClass = d.check_in ? "check-in" : "box";
-    const stateText = d.check_in ? "CHECK-IN" : "BOX";
-    const largeTimeStyle = d.check_in 
-      ? `font-size: 1.8rem; font-family: monospace; font-weight: bold; line-height: 1;` 
-      : `font-size: 1.2rem; font-family: monospace; font-weight: bold; color: var(--muted);`;
-
-    return `
-      <div class="driver-row" style="opacity:${opacity};">
-        <div class="driver-name">
-          <div class="driver-info-left">
-            <div style="font-size:1.15rem; font-weight:600; color:${nameColor}; display:flex; align-items:center;">
-              ${d.name}
-              <span class="medals">${medals(d.skill)}</span>
-            </div>
-            <div style="display:flex; align-items:center; gap:6px; margin-top:2px;">
-              <span class="state-badge ${stateClass}">${stateText}</span>
-              ${posHtml}
+    if (d.check_in) {
+      return `
+        <div class="driver-row" style="opacity:1;">
+          <div class="driver-name" style="align-items:center;">
+            <div class="driver-info-left" style="gap:4px;">
+              <div style="font-size:2.2rem; font-family:monospace; font-weight:bold; line-height:1; color:${nameColor};">${fmt(left)}</div>
+              <div style="font-size:1.15rem; font-weight:600; color:var(--text); display:flex; align-items:center;">
+                ${d.name} ${checkInHtml}
+              </div>
             </div>
           </div>
-          <div class="driver-info-right">
-            <span style="${largeTimeStyle}">${fmt(left)}</span>
-            <span style="font-size:0.8rem; color:var(--muted); margin-top:2px;">${pct}%</span>
+        </div>
+      `;
+    } else {
+      return `
+        <div class="driver-row" style="opacity:0.7;">
+          <div class="driver-name" style="align-items:center;">
+            <div class="driver-info-left" style="flex-direction:row; align-items:center; font-size:1.05rem; font-weight:500; color:var(--text);">
+              ${d.name} ${medals(d.skill)}
+            </div>
+            <div class="driver-info-right" style="font-size:1.2rem; font-family:monospace; font-weight:bold; color:var(--muted);">
+              ${fmt(left)}
+            </div>
           </div>
         </div>
-
-        <div class="progress">
-          <div class="progress-bar" style="width:${pct}%;background:${progressColor}"></div>
-        </div>
-        
-        ${posBarHtml}
-      </div>
-    `;
+      `;
+    }
   }
 
   /* ===========================================================
@@ -172,11 +154,27 @@
     $("#main").innerHTML = `
       <div id="grid">
         ${teams.map((team,i)=>{
+          const hasActiveDriver = (team.drivers||[]).some(d => d.check_in);
+          let boxHtml = "";
+          if (!hasActiveDriver) {
+             const driverWithTimer = (team.drivers||[]).find(d => typeof d.position_time_sec === 'number');
+             let timerStr = "";
+             if (driverWithTimer) {
+               const s = driverWithTimer.position_time_sec;
+               const m = Math.floor(s/60).toString().padStart(2, '0');
+               const sec = (s%60).toString().padStart(2, '0');
+               timerStr = ` ${m}:${sec}`;
+             }
+             boxHtml = `<span class="badge-box">BOX${timerStr}</span>`;
+          }
+
           return `
-            <div class="card-desktop ${team.deck ? "deck-active" : ""}"
+            <div class="card-desktop ${team.deck ? "deck" : ""}"
                  style="border-top: 4px solid ${team.color||"#888"}">
-              <h3>${team.team_name}
-                <span class="team-stars">${stars(team.category)}</span>
+              <h3 style="display:flex; align-items:center; margin:0 0 .8rem 0;">
+                ${team.team_name}
+                ${stars(team.category)}
+                ${boxHtml}
               </h3>
               <button class="stints-btn" onclick="window.location.href='stints.html?team=${team.team_id}'">📋 Stints</button>
               ${(team.drivers||[]).map(d => renderDriverCard(d)).join("")}
@@ -197,15 +195,33 @@
 
     main.innerHTML = `
       <div id="carousel">
-        ${teams.map((team,i)=>`
-          <div class="carousel-card" style="border-top: 4px solid ${team.color||"#888"}">
-            <h3>${team.team_name}
-              <span class="team-stars">${stars(team.category)}</span>
-            </h3>
-            <button class="stints-btn" onclick="window.location.href='stints.html?team=${team.team_id}'">📋 Stints</button>
-            ${(team.drivers||[]).map(d => renderDriverCard(d)).join("")}
-          </div>
-        `).join("")}
+        ${teams.map((team,i)=>{
+          const hasActiveDriver = (team.drivers||[]).some(d => d.check_in);
+          let boxHtml = "";
+          if (!hasActiveDriver) {
+             const driverWithTimer = (team.drivers||[]).find(d => typeof d.position_time_sec === 'number');
+             let timerStr = "";
+             if (driverWithTimer) {
+               const s = driverWithTimer.position_time_sec;
+               const m = Math.floor(s/60).toString().padStart(2, '0');
+               const sec = (s%60).toString().padStart(2, '0');
+               timerStr = ` ${m}:${sec}`;
+             }
+             boxHtml = `<span class="badge-box">BOX${timerStr}</span>`;
+          }
+
+          return `
+            <div class="carousel-card ${team.deck ? "deck" : ""}" style="border-top: 4px solid ${team.color||"#888"}">
+              <h3 style="display:flex; align-items:center; margin:0 0 .8rem 0;">
+                ${team.team_name}
+                ${stars(team.category)}
+                ${boxHtml}
+              </h3>
+              <button class="stints-btn" onclick="window.location.href='stints.html?team=${team.team_id}'">📋 Stints</button>
+              ${(team.drivers||[]).map(d => renderDriverCard(d)).join("")}
+            </div>
+          `;
+        }).join("")}
       </div>
     `;
 

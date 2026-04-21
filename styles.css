@@ -43,9 +43,9 @@ header {
 #timer {
   font-family:monospace;
   font-weight:bold;
-  padding:.25rem .7rem;
+  padding:.3rem .8rem;
   border-radius:.5rem;
-  font-size:1rem;
+  font-size:1.4rem;
   border:3px solid var(--accent);
   color:var(--accent);
 }
@@ -94,12 +94,8 @@ header {
 }
 
 /* Card da equipe quando está em DECK */
-.team-card.deck {
-  background: #2e333a !important;
-}
-
-.team-card.deck .team-content {
-  background: #2e333a !important;
+.card-desktop.deck, .carousel-card.deck {
+  background: var(--card-deck) !important;
 }
 
 .driver-row {
@@ -130,53 +126,36 @@ header {
   align-items: flex-end;
 }
 
-.medals {
-  color: var(--muted);
-  font-size: .7rem;
-  letter-spacing: 1px;
-  margin-left: .3rem;
+.badge-letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: #3b82f6;
+  color: #000;
+  border-radius: 4px;
+  margin-left: 6px;
+  opacity: 0.85;
 }
 
-.state-badge {
+.badge-box {
+  display: inline-flex;
+  align-items: center;
   font-size: 0.75rem;
   font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 4px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-.state-badge.check-in {
-  background: rgba(46, 204, 113, 0.2);
-  color: var(--ok);
-  border: 1px solid rgba(46, 204, 113, 0.4);
-}
-.state-badge.box {
   background: rgba(255, 255, 255, 0.1);
   color: var(--muted);
   border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  padding: 2px 6px;
+  margin-left: 8px;
+  text-transform: uppercase;
 }
 
-.progress {
-  width: 100%;
-  height: 6px;
-  background: #222b;
-  border-radius: 999px;
-  overflow: hidden;
-  margin-top: 8px;
-}
-
-.progress-bar {
-  height: 100%;
-  transition: width .4s linear;
-}
-
-.driver-meta {
-  color: var(--muted);
-  font-size: .85rem;
-  display: flex;
-  justify-content: space-between;
-  margin-top: .1rem;
-}
+/* progress and bars removed */
 
 /* === MOBILE CAROUSEL === */
 #carousel {
@@ -260,26 +239,7 @@ header {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  animation: pulse-text 1s infinite alternate;
-  border: 1px solid rgba(255,255,255,0.2); /* Borda para destacar badge */
-}
-
-.pos-bar-container {
-  width: 100%;
-  height: 8px;           /* ⬆️ Aumentei de 4px para 8px */
-  background: #3a3f46;   /* ⬆️ Mudei de Preto para Cinza (visível no fundo escuro) */
-  margin-top: 6px;       /* ⬆️ Mais espaço entre a barra principal e esta */
-  margin-bottom: 4px;    /* ⬆️ Espaço para o texto de baixo */
-  border-radius: 4px;
-  overflow: hidden;
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.5); /* Profundidade */
-}
-
-.pos-bar-fill {
-  height: 100%;
-  display: block;        /* Garante que o elemento ocupe espaço */
-  transition: width 0.5s linear, background-color 0.3s ease;
-  box-shadow: 0 0 4px rgba(0,0,0,0.5); /* Sombra para destacar a cor */
+  border: 1px solid rgba(255,255,255,0.2);
 }
 
 @keyframes pulse-text {
