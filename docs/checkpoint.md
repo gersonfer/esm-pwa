@@ -26,3 +26,11 @@ Status: **COMPLETED**
 - **Logic Correction**: Fully removed the UI-layer inference that falsely derived a `BOX` state when no driver was checked in.
 - **Strict Data Binding**: Rewrote the team header logic to render the `BOX` state exclusively when explicitly commanded by the backend payload (using `team.is_box`, `team.box`, or `team.flag`).
 - **Timer Handling**: Pit timers are now safely drawn only if explicitly provided (`team.box_timer` or `team.box_time`), otherwise rendering a clean `BOX` badge without guessing values from inactive drivers.
+
+Task 001.3 — Correct BOX Rendering Using mandatory_stop_start
+Status: **COMPLETED**
+
+### Summary of Completed Work
+- **Strict Domain Binding**: Replaced the speculative explicit field checks (`team.box`, `team.is_box`, `team.flag`) with the actual backend field `team.mandatory_stop_start`. The `BOX` state now perfectly aligns with the server data model.
+- **Timestamp Calculation**: Refactored the pit timer to calculate elapsed time dynamically using `Math.floor(Date.now() / 1000 - team.mandatory_stop_start)`, rendering correctly formatted `MM:SS` logic directly inside the team header.
+- **No Regressions**: Checked-in driver logic and Decked team logic remains intact and purely distinct from pit status.

@@ -155,17 +155,12 @@
       <div id="grid">
         ${teams.map((team,i)=>{
           let boxHtml = "";
-          if (team.box === true || team.is_box === true || team.flag === "box") {
-             const timerRaw = team.box_timer ?? team.box_time;
-             let timerStr = "";
-             if (typeof timerRaw === "number") {
-               const m = Math.floor(timerRaw/60).toString().padStart(2, "0");
-               const sec = (timerRaw%60).toString().padStart(2, "0");
-               timerStr = ` ${m}:${sec}`;
-             } else if (typeof timerRaw === "string") {
-               timerStr = ` ${timerRaw}`;
-             }
-             boxHtml = `<span class="badge-box">BOX${timerStr}</span>`;
+          if (team.mandatory_stop_start) {
+             const now = Date.now() / 1000;
+             const elapsed = Math.floor(now - team.mandatory_stop_start);
+             const m = Math.floor(elapsed / 60).toString().padStart(2, "0");
+             const s = (elapsed % 60).toString().padStart(2, "0");
+             boxHtml = `<span class="badge-box">BOX ${m}:${s}</span>`;
           }
 
           return `
@@ -197,17 +192,12 @@
       <div id="carousel">
         ${teams.map((team,i)=>{
           let boxHtml = "";
-          if (team.box === true || team.is_box === true || team.flag === "box") {
-             const timerRaw = team.box_timer ?? team.box_time;
-             let timerStr = "";
-             if (typeof timerRaw === "number") {
-               const m = Math.floor(timerRaw/60).toString().padStart(2, "0");
-               const sec = (timerRaw%60).toString().padStart(2, "0");
-               timerStr = ` ${m}:${sec}`;
-             } else if (typeof timerRaw === "string") {
-               timerStr = ` ${timerRaw}`;
-             }
-             boxHtml = `<span class="badge-box">BOX${timerStr}</span>`;
+          if (team.mandatory_stop_start) {
+             const now = Date.now() / 1000;
+             const elapsed = Math.floor(now - team.mandatory_stop_start);
+             const m = Math.floor(elapsed / 60).toString().padStart(2, "0");
+             const s = (elapsed % 60).toString().padStart(2, "0");
+             boxHtml = `<span class="badge-box">BOX ${m}:${s}</span>`;
           }
 
           return `
