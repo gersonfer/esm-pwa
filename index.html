@@ -1,124 +1,125 @@
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="auto">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>🏁 ESM Live Viewer</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🏁 ESM Live Viewer</title>
 
-<link rel="manifest" href="./manifest.json" />
-<meta name="theme-color" content="#10141a" />
+  <link rel="manifest" href="./manifest.json" />
+  <meta name="theme-color" content="#10141a" />
 
-<!-- CSS EXTERNO -->
-<link rel="stylesheet" href="styles.css" />
+  <!-- CSS EXTERNO -->
+  <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
 
-<header>
-  <span>
-    🏁 ESM Live Viewer
-    <span id="track-badge"></span>
-  </span>
-  <span id="timer">--:--:--</span>
-</header>
+  <header>
+    <span>
+      🏁 ESM Live Viewer
+      <span id="track-badge"></span>
+    </span>
+    <span id="timer">--:--:--</span>
+  </header>
 
-<div id="main"></div>
-<div id="dots"></div>
+  <div id="main"></div>
+  <div id="dots"></div>
 
-<script>
-(function(){
-  const $ = q => document.querySelector(q);
-  let activeCardIndex = 0;
-  let lastSnapshot = null;
+  <script>
+    (function () {
+      const $ = q => document.querySelector(q);
+      let activeCardIndex = 0;
+      let lastSnapshot = null;
 
-  function isMobile(){
-    return window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 900;
-  }
+      function isMobile() {
+        return window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 900;
+      }
 
-  function formatTime(sec){
-    if (typeof sec !== "number") return "--:--:--";
-    sec = Math.max(0, sec|0);
-    const h = String(Math.floor(sec/3600)).padStart(2,"0");
-    const m = String(Math.floor((sec%3600)/60)).padStart(2,"0");
-    const s = String(sec%60).padStart(2,"0");
-    return `${h}:${m}:${s}`;
-  }
+      function formatTime(sec) {
+        if (typeof sec !== "number") return "--:--:--";
+        sec = Math.max(0, sec | 0);
+        const h = String(Math.floor(sec / 3600)).padStart(2, "0");
+        const m = String(Math.floor((sec % 3600) / 60)).padStart(2, "0");
+        const s = String(sec % 60).padStart(2, "0");
+        return `${h}:${m}:${s}`;
+      }
 
-  function stars(cat){
-    const c=(cat||"").toUpperCase();
-    let l = "";
-    if(c==="LIGHT") l = "L";
-    else if(c==="AM") l = "A";
-    else if(c==="PRO-AM") l = "S";
-    else if(c==="PRO") l = "P";
-    return l ? `<span class="badge-letter">${l}</span>` : "";
-  }
+      function stars(cat) {
+        const c = (cat || "").toUpperCase();
+        let l = "";
+        if (c === "LIGHT") l = "L";
+        else if (c === "AM") l = "A";
+        else if (c === "PRO-AM") l = "S";
+        else if (c === "PRO") l = "P";
+        return l ? `<span class="badge-letter">${l}</span>` : "";
+      }
 
-  function medals(skill){
-    const s = (skill||"").toLowerCase();
-    let l = "";
-    if(s==="platinum") l = "P";
-    else if(s==="gold") l = "G";
-    else if(s==="silver") l = "S";
-    else if(s==="bronze") l = "B";
-    return l ? `<span class="badge-letter">${l}</span>` : "";
-  }
+      function medals(skill) {
+        const s = (skill || "").toLowerCase();
+        let l = "";
+        if (s === "platinum") l = "P";
+        else if (s === "gold") l = "G";
+        else if (s === "silver") l = "S";
+        else if (s === "bronze") l = "B";
+        return l ? `<span class="badge-letter">${l}</span>` : "";
+      }
 
-  function updateTrackBadge(name){
-    const badge=$("#track-badge");
-    if (!name) badge.style.display="none";
-    else {
-      badge.style.display="inline-block";
-      badge.textContent=name;
-    }
-  }
+      function updateTrackBadge(name) {
+        const badge = $("#track-badge");
+        if (!name) badge.style.display = "none";
+        else {
+          badge.style.display = "inline-block";
+          badge.textContent = name;
+        }
+      }
 
-  function setTimerBorder(status){
-    const el = $("#timer");
-    const s = String(status || "").toLowerCase();
-    el.style.border = "";
-    el.style.borderRadius = "8px";
+      function setTimerBorder(status) {
+        const el = $("#timer");
+        const s = String(status || "").toLowerCase();
+        el.style.border = "";
+        el.style.borderRadius = "8px";
 
-    if (s === "running") el.style.border = "3px solid var(--ok)";
-    else if (s === "paused") el.style.border = "3px solid var(--warn)";
-    else if (s.includes("over") || s.includes("finish")) el.style.border = "3px solid var(--alert)";
-    else el.style.border = "3px solid var(--accent)";
-  }
+        if (s === "running") el.style.border = "3px solid var(--ok)";
+        else if (s === "paused") el.style.border = "3px solid var(--warn)";
+        else if (s.includes("over") || s.includes("finish")) el.style.border = "3px solid var(--alert)";
+        else el.style.border = "3px solid var(--accent)";
+      }
 
-  function fmt(sec) {
-    if (!sec || sec < 0) sec = 0;
-    sec = Math.floor(sec);
-    const h = String(Math.floor(sec / 3600)).padStart(2, "0");
-    const m = String(Math.floor((sec % 3600) / 60)).padStart(2, "0");
-    const s = String(sec % 60).padStart(2, "0");
-    return `${h}:${m}:${s}`;
-  }
+      function fmt(sec) {
+        if (!sec || sec < 0) sec = 0;
+        sec = Math.floor(sec);
+        const h = String(Math.floor(sec / 3600)).padStart(2, "0");
+        const m = String(Math.floor((sec % 3600) / 60)).padStart(2, "0");
+        const s = String(sec % 60).padStart(2, "0");
+        return `${h}:${m}:${s}`;
+      }
 
-  // === HELPER PARA O DRIVER CARD ===
-  function renderDriverCard(d) {
-    const total = d.stint_duration_sec||0;
-    const left  = d.stint_left_sec||0;
-    const done  = total-left;
-    const pct   = Math.max(0,Math.min(100,Math.round(100*(done/Math.max(1,total)))));
+      // === HELPER PARA O DRIVER CARD ===
+      function renderDriverCard(d) {
+        const total = d.stint_duration_sec || 0;
+        const left = d.stint_left_sec || 0;
+        const done = total - left;
+        const pct = Math.max(0, Math.min(100, Math.round(100 * (done / Math.max(1, total)))));
 
-    // Lógica de Cores do Nome
-    let nameColor="var(--text)";
-    if(left < 120) nameColor="var(--alert)";
-    else if(left < 300) nameColor="var(--warn)";
+        // Lógica de Cores do Nome
+        let nameColor = "var(--text)";
+        if (left < 120) nameColor = "var(--alert)";
+        else if (left < 300) nameColor = "var(--warn)";
 
-    // === LÓGICA DO POSITION TIMER ===
-    let checkInHtml = "";
-    if (d.check_in && typeof d.position_time_sec === 'number') {
-        const pSec = d.position_time_sec;
-        let pColor = "#00ffff"; // Ciano
-        if (pSec > 40) pColor = "#ffff00"; // Amarelo
-        if (pSec > 50) pColor = "#ff0000"; // Vermelho
-        
-        checkInHtml = `<span class="pos-badge" style="color:${pColor}; text-shadow:0 0 5px ${pColor};">⏱ ${pSec}s</span>`;
-    }
+        // === LÓGICA DO POSITION TIMER ===
+        let checkInHtml = "";
+        if (d.check_in && typeof d.position_time_sec === 'number') {
+          const pSec = d.position_time_sec;
+          let pColor = "#00ffff"; // Ciano
+          if (pSec > 40) pColor = "#ffff00"; // Amarelo
+          if (pSec > 50) pColor = "#ff0000"; // Vermelho
 
-    if (d.check_in) {
-      return `
+          checkInHtml = `<span class="pos-badge" style="color:${pColor}; text-shadow:0 0 5px ${pColor};">⏱ ${pSec}s</span>`;
+        }
+
+        if (d.check_in) {
+          return `
         <div class="driver-row" style="opacity:1;">
           <div class="driver-name" style="align-items:center;">
             <div class="driver-info-left" style="gap:4px;">
@@ -130,8 +131,8 @@
           </div>
         </div>
       `;
-    } else {
-      return `
+        } else {
+          return `
         <div class="driver-row" style="opacity:0.7;">
           <div class="driver-name" style="align-items:center;">
             <div class="driver-info-left" style="flex-direction:row; align-items:center; font-size:1.05rem; font-weight:500; color:var(--text);">
@@ -143,259 +144,263 @@
           </div>
         </div>
       `;
-    }
-  }
+        }
+      }
 
-  /* ===========================================================
-     DESKTOP RENDER
-  ============================================================ */
-  function renderDesktop(data){
-    const teams=data.teams||[];
-    $("#main").innerHTML = `
+      /* ===========================================================
+         DESKTOP RENDER
+      ============================================================ */
+      function renderDesktop(data) {
+        const teams = data.teams || [];
+        $("#main").innerHTML = `
       <div id="grid">
-        ${teams.map((team,i)=>{
+        ${teams.map((team, i) => {
           let boxHtml = "";
           if (team.mandatory_stop_start) {
-             const now = Date.now() / 1000;
-             const elapsed = Math.floor(now - team.mandatory_stop_start);
-             const m = Math.floor(elapsed / 60).toString().padStart(2, "0");
-             const s = (elapsed % 60).toString().padStart(2, "0");
-             boxHtml = `<span class="badge-box">BOX ${m}:${s}</span>`;
+            const now = Date.now() / 1000;
+            const elapsed = Math.floor(now - team.mandatory_stop_start);
+            const m = Math.floor(elapsed / 60).toString().padStart(2, "0");
+            const s = (elapsed % 60).toString().padStart(2, "0");
+            boxHtml = `<span class="badge-box">BOX ${m}:${s}</span>`;
           }
 
           return `
             <div class="card-desktop ${team.deck ? "deck" : ""}"
-                 style="border-top: 4px solid ${team.color||"#888"}">
+                 style="border-top: 4px solid ${team.color || "#888"}">
               <h3 style="display:flex; align-items:center; margin:0 0 .8rem 0;">
                 ${team.team_name}
                 ${stars(team.category)}
                 ${boxHtml}
               </h3>
               <button class="stints-btn" onclick="window.location.href='stints.html?team=${team.team_id}'">📋 Stints</button>
-              ${(team.drivers||[]).map(d => renderDriverCard(d)).join("")}
+              ${(team.drivers || []).map(d => renderDriverCard(d)).join("")}
             </div>
           `;
         }).join("")}
       </div>
     `;
-  }
+      }
 
-  /* ===========================================================
-     MOBILE RENDER
-  ============================================================ */
-  function renderMobile(data){
-    const teams=data.teams||[];
-    const main=$("#main");
-    const prevScroll = main.querySelector("#carousel")?.scrollLeft || 0;
+      /* ===========================================================
+         MOBILE RENDER
+      ============================================================ */
+      function renderMobile(data) {
+        const teams = data.teams || [];
+        const main = $("#main");
+        const prevScroll = main.querySelector("#carousel")?.scrollLeft || 0;
 
-    main.innerHTML = `
+        main.innerHTML = `
       <div id="carousel">
-        ${teams.map((team,i)=>{
+        ${teams.map((team, i) => {
           let boxHtml = "";
           if (team.mandatory_stop_start) {
-             const now = Date.now() / 1000;
-             const elapsed = Math.floor(now - team.mandatory_stop_start);
-             const m = Math.floor(elapsed / 60).toString().padStart(2, "0");
-             const s = (elapsed % 60).toString().padStart(2, "0");
-             boxHtml = `<span class="badge-box">BOX ${m}:${s}</span>`;
+            const now = Date.now() / 1000;
+            const elapsed = Math.floor(now - team.mandatory_stop_start);
+            const m = Math.floor(elapsed / 60).toString().padStart(2, "0");
+            const s = (elapsed % 60).toString().padStart(2, "0");
+            boxHtml = `<span class="badge-box">BOX ${m}:${s}</span>`;
           }
 
           return `
-            <div class="carousel-card ${team.deck ? "deck" : ""}" style="border-top: 4px solid ${team.color||"#888"}">
+            <div class="carousel-card ${team.deck ? "deck" : ""}" style="border-top: 4px solid ${team.color || "#888"}">
               <h3 style="display:flex; align-items:center; margin:0 0 .8rem 0;">
                 ${team.team_name}
                 ${stars(team.category)}
                 ${boxHtml}
               </h3>
               <button class="stints-btn" onclick="window.location.href='stints.html?team=${team.team_id}'">📋 Stints</button>
-              ${(team.drivers||[]).map(d => renderDriverCard(d)).join("")}
+              ${(team.drivers || []).map(d => renderDriverCard(d)).join("")}
             </div>
           `;
         }).join("")}
       </div>
     `;
 
-    const el = $("#carousel");
-    el.scrollLeft = prevScroll;
+        const el = $("#carousel");
+        el.scrollLeft = prevScroll;
 
-    const dots=$("#dots");
-    dots.innerHTML = teams.map((_,i)=>`
-      <div class="dot ${i===activeCardIndex?'active':''}"></div>
+        const dots = $("#dots");
+        dots.innerHTML = teams.map((_, i) => `
+      <div class="dot ${i === activeCardIndex ? 'active' : ''}"></div>
     `).join("");
 
-    el.addEventListener("scroll", ()=>{
-      const card=el.querySelector(".carousel-card");
-      if(!card) return;
-      const w=card.offsetWidth||1;
-      activeCardIndex=Math.round(el.scrollLeft/w);
+        el.addEventListener("scroll", () => {
+          const card = el.querySelector(".carousel-card");
+          if (!card) return;
+          const w = card.offsetWidth || 1;
+          activeCardIndex = Math.round(el.scrollLeft / w);
 
-      document.querySelectorAll(".dot").forEach((d,i)=>{
-        d.classList.toggle("active", i===activeCardIndex);
-      });
-    });
-  }
+          document.querySelectorAll(".dot").forEach((d, i) => {
+            d.classList.toggle("active", i === activeCardIndex);
+          });
+        });
+      }
 
-  function render(data){
-    // console.log("STATUS:", data.race_status);
-    lastSnapshot = data;
-    $("#timer").textContent=formatTime(data.race_left_sec);
-    setTimerBorder(data.race_status);
-    updateTrackBadge(data.track_name);
+      function render(data) {
+        // console.log("STATUS:", data.race_status);
+        lastSnapshot = data;
 
-    if (isMobile()) renderMobile(data);
-    else renderDesktop(data);
-  }
+        window.debugSnapshot = data;
 
-  function connect(){
-    const ws=new WebSocket(`wss://esm-live.onrender.com/ws`);
-    ws.onmessage=ev=>{
-      try{
-        const data=JSON.parse(ev.data);
-        if(data.type!=="hello") render(data);
-      }catch(_){}
-    };
-    ws.onclose=()=>setTimeout(connect,1000);
-  }
+        $("#timer").textContent = formatTime(data.race_left_sec);
+        setTimerBorder(data.race_status);
+        updateTrackBadge(data.track_name);
 
-  render({race_left_sec:0,teams:[]});
-  connect();
+        if (isMobile()) renderMobile(data);
+        else renderDesktop(data);
+      }
 
-  // === STINTS MODAL ===
-  function fmtTs(ts){
-    if (!ts) return "—";
-    const d = new Date(ts * 1000);
-    const hh = String(d.getHours()).padStart(2,"0");
-    const mm = String(d.getMinutes()).padStart(2,"0");
-    const ss = String(d.getSeconds()).padStart(2,"0");
-    return `${hh}:${mm}:${ss}`;
-  }
+      function connect() {
+        const ws = new WebSocket(`wss://esm-live.onrender.com/ws`);
+        ws.onmessage = ev => {
+          try {
+            const data = JSON.parse(ev.data);
+            if (data.type !== "hello") render(data);
+          } catch (_) { }
+        };
+        ws.onclose = () => setTimeout(connect, 1000);
+      }
 
-  function showModal(html){
-    const content = $("#stint-content");
-    content.innerHTML = html;
-    $("#stint-modal").classList.remove("hidden");
-  }
+      render({ race_left_sec: 0, teams: [] });
+      connect();
 
-  function closeModal(){
-    $("#stint-modal").classList.add("hidden");
-  }
+      // === STINTS MODAL ===
+      function fmtTs(ts) {
+        if (!ts) return "—";
+        const d = new Date(ts * 1000);
+        const hh = String(d.getHours()).padStart(2, "0");
+        const mm = String(d.getMinutes()).padStart(2, "0");
+        const ss = String(d.getSeconds()).padStart(2, "0");
+        return `${hh}:${mm}:${ss}`;
+      }
 
-  function openTeamModal(teamId){
-    const snap = lastSnapshot;
-    if (!snap) return;
-    const team = (snap.teams||[])[teamId];
-    if (!team) return;
+      function showModal(html) {
+        const content = $("#stint-content");
+        content.innerHTML = html;
+        $("#stint-modal").classList.remove("hidden");
+      }
 
-    const stints = (team.stint_history||[]).slice().sort((a,b) => a.started_at - b.started_at);
+      function closeModal() {
+        $("#stint-modal").classList.add("hidden");
+      }
 
-    let html = `<h2>${team.team_name}</h2>`;
-    html += `<button class="modal-close-btn" onclick="closeModal()">✕ Fechar</button>`;
+      function openTeamModal(teamId) {
+        const snap = lastSnapshot;
+        if (!snap) return;
+        const team = (snap.teams || [])[teamId];
+        if (!team) return;
 
-    if (stints.length === 0) {
-      html += `<p class="no-stints">Nenhum stint registrado.</p>`;
-    } else {
-      html += `<div class="stint-list">`;
-      stints.forEach((s, idx) => {
-        const driverName = s.driver_name || "Desconhecido";
-        const started = fmtTs(s.started_at);
-        const ended = s.ended_at ? fmtTs(s.ended_at) : "AGORA";
-        const duration = (s.started_at && s.ended_at) ? ` • ${fmt(s.ended_at - s.started_at)}` : "";
-        html += `
-          <div class="stint-row" onclick="window._openDriver(${teamId},'${driverName.replace(/'/g,"\\'")}')">
-            <span class="stint-num">#${idx+1}</span>
+        const stints = (team.stint_history || []).slice().sort((a, b) => a.started_at - b.started_at);
+
+        let html = `<h2>${team.team_name}</h2>`;
+        html += `<button class="modal-close-btn" onclick="closeModal()">✕ Fechar</button>`;
+
+        if (stints.length === 0) {
+          html += `<p class="no-stints">Nenhum stint registrado.</p>`;
+        } else {
+          html += `<div class="stint-list">`;
+          stints.forEach((s, idx) => {
+            const driverName = s.driver_name || "Desconhecido";
+            const started = fmtTs(s.started_at);
+            const ended = s.ended_at ? fmtTs(s.ended_at) : "AGORA";
+            const duration = (s.started_at && s.ended_at) ? ` • ${fmt(s.ended_at - s.started_at)}` : "";
+            html += `
+          <div class="stint-row" onclick="window._openDriver(${teamId},'${driverName.replace(/'/g, "\\'")}')">
+            <span class="stint-num">#${idx + 1}</span>
             <span class="stint-driver">${driverName}</span>
             <span class="stint-time">${started} → ${ended}</span>
             <span class="stint-detail">${duration}</span>
           </div>
         `;
-      });
-      html += `</div>`;
-    }
+          });
+          html += `</div>`;
+        }
 
-    showModal(html);
-  }
+        showModal(html);
+      }
 
-  function openDriver(teamId, driverId){
-    const snap = lastSnapshot;
-    if (!snap) return;
-    const team = (snap.teams||[])[teamId];
-    if (!team) return;
+      function openDriver(teamId, driverId) {
+        const snap = lastSnapshot;
+        if (!snap) return;
+        const team = (snap.teams || [])[teamId];
+        if (!team) return;
 
-    const driverName = typeof driverId === "string" ? driverId : driverId;
+        const driverName = typeof driverId === "string" ? driverId : driverId;
 
-    const stints = (team.stint_history||[])
-      .filter(s => String(s.driver_id) === String(driverId) || s.driver_name === driverId)
-      .slice()
-      .sort((a,b) => a.started_at - b.started_at);
+        const stints = (team.stint_history || [])
+          .filter(s => String(s.driver_id) === String(driverId) || s.driver_name === driverId)
+          .slice()
+          .sort((a, b) => a.started_at - b.started_at);
 
-    let html = `<button class="modal-back-btn" onclick="window._openTeamModal(${teamId})">← Voltar</button>`;
-    html += `<h2>${driverName}</h2>`;
-    html += `<p class="stint-subtitle">${team.team_name}</p>`;
+        let html = `<button class="modal-back-btn" onclick="window._openTeamModal(${teamId})">← Voltar</button>`;
+        html += `<h2>${driverName}</h2>`;
+        html += `<p class="stint-subtitle">${team.team_name}</p>`;
 
-    if (stints.length === 0) {
-      html += `<p class="no-stints">Nenhum stint para este piloto.</p>`;
-    } else {
-      html += `<div class="stint-list">`;
-      stints.forEach((s, idx) => {
-        const started = fmtTs(s.started_at);
-        const ended = s.ended_at ? fmtTs(s.ended_at) : "AGORA";
-        const duration = (s.started_at && s.ended_at) ? ` • ${fmt(s.ended_at - s.started_at)}` : "";
-        html += `
+        if (stints.length === 0) {
+          html += `<p class="no-stints">Nenhum stint para este piloto.</p>`;
+        } else {
+          html += `<div class="stint-list">`;
+          stints.forEach((s, idx) => {
+            const started = fmtTs(s.started_at);
+            const ended = s.ended_at ? fmtTs(s.ended_at) : "AGORA";
+            const duration = (s.started_at && s.ended_at) ? ` • ${fmt(s.ended_at - s.started_at)}` : "";
+            html += `
           <div class="stint-row stint-detail">
-            <span class="stint-num">#${idx+1}</span>
+            <span class="stint-num">#${idx + 1}</span>
             <span class="stint-time">${started} → ${ended}</span>
             <span class="stint-detail">${duration}</span>
           </div>
         `;
-      });
-      html += `</div>`;
-    }
-
-    showModal(html);
-  }
-
-  // Expose functions globally for onclick handlers
-  window._openTeamModal = openTeamModal;
-  window._openDriver = openDriver;
-  window.closeModal = closeModal;
-
-})();
-</script>
-
-<script>
-/* === SERVICE WORKER === */
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./sw.js").then(reg => {
-
-    if (reg.waiting) {
-      reg.waiting.postMessage({ type: "SKIP_WAITING" });
-    }
-
-    reg.addEventListener("updatefound", () => {
-      const newWorker = reg.installing;
-      newWorker.addEventListener("statechange", () => {
-        if (
-          newWorker.state === "installed" &&
-          navigator.serviceWorker.controller
-        ) {
-          reg.waiting?.postMessage({ type: "SKIP_WAITING" });
+          });
+          html += `</div>`;
         }
+
+        showModal(html);
+      }
+
+      // Expose functions globally for onclick handlers
+      window._openTeamModal = openTeamModal;
+      window._openDriver = openDriver;
+      window.closeModal = closeModal;
+
+    })();
+  </script>
+
+  <script>
+    /* === SERVICE WORKER === */
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./sw.js").then(reg => {
+
+        if (reg.waiting) {
+          reg.waiting.postMessage({ type: "SKIP_WAITING" });
+        }
+
+        reg.addEventListener("updatefound", () => {
+          const newWorker = reg.installing;
+          newWorker.addEventListener("statechange", () => {
+            if (
+              newWorker.state === "installed" &&
+              navigator.serviceWorker.controller
+            ) {
+              reg.waiting?.postMessage({ type: "SKIP_WAITING" });
+            }
+          });
+        });
+
+        navigator.serviceWorker.addEventListener("controllerchange", () => {
+          window.location.reload();
+        });
+
       });
-    });
+    }
+  </script>
 
-    navigator.serviceWorker.addEventListener("controllerchange", () => {
-      window.location.reload();
-    });
-
-  });
-}
-</script>
-
-<div id="stint-modal" class="hidden">
-  <div class="stint-modal-content">
-    <div id="stint-content"></div>
+  <div id="stint-modal" class="hidden">
+    <div class="stint-modal-content">
+      <div id="stint-content"></div>
+    </div>
   </div>
-</div>
 
 </body>
+
 </html>
