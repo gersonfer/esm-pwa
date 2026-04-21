@@ -102,10 +102,24 @@
         const done = total - left;
         const pct = Math.max(0, Math.min(100, Math.round(100 * (done / Math.max(1, total)))));
 
-        // Lógica de Cores do Nome
+        // Lógica de Cores do Nome (Only for active driver)
         let nameColor = "var(--text)";
-        if (left < 120) nameColor = "var(--alert)";
-        else if (left < 300) nameColor = "var(--warn)";
+        let isBlink = false;
+
+        if (d.check_in) {
+          if (left <= 0) {
+            nameColor = "var(--alert)";
+            if (lastSnapshot && lastSnapshot.race_status === 'running') {
+              isBlink = true;
+            }
+          } else if (left <= 120) {
+            nameColor = "var(--alert)";
+          } else if (left < 300) {
+            nameColor = "var(--warn)";
+          } else {
+            nameColor = "var(--ok)";
+          }
+        }
 
         // === LÓGICA DO POSITION TIMER ===
         let checkInHtml = "";
@@ -119,13 +133,14 @@
         }
 
         if (d.check_in) {
+          const blinkClass = isBlink ? " blink-text" : "";
           return `
         <div class="driver-row" style="opacity:1;">
           <div class="driver-name" style="align-items:center;">
             <div class="driver-info-left" style="gap:4px;">
-              <div style="font-size:2.2rem; font-family:monospace; font-weight:bold; line-height:1; color:${nameColor};">${fmt(left)}</div>
+              <div class="${blinkClass}" style="font-size:2.2rem; font-family:monospace; font-weight:bold; line-height:1; color:${nameColor};">${fmt(left)}</div>
               <div style="font-size:1.15rem; font-weight:600; color:var(--text); display:flex; align-items:center;">
-                ${d.name} ${checkInHtml}
+                ${d.name} ${medals(d.skill)} ${checkInHtml}
               </div>
             </div>
           </div>

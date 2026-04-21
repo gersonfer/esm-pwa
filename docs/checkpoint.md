@@ -34,3 +34,12 @@ Status: **COMPLETED**
 - **Strict Domain Binding**: Replaced the speculative explicit field checks (`team.box`, `team.is_box`, `team.flag`) with the actual backend field `team.mandatory_stop_start`. The `BOX` state now perfectly aligns with the server data model.
 - **Timestamp Calculation**: Refactored the pit timer to calculate elapsed time dynamically using `Math.floor(Date.now() / 1000 - team.mandatory_stop_start)`, rendering correctly formatted `MM:SS` logic directly inside the team header.
 - **No Regressions**: Checked-in driver logic and Decked team logic remains intact and purely distinct from pit status.
+
+Task 001.3 — UI Refinements (No WebSocket Changes)
+Status: **COMPLETED**
+
+### Summary of Completed Work
+- **Driver Skill Badges**: Ensured the driver skill badge (e.g. `[P]`, `[S]`) is always rendered for both active and inactive drivers to preserve hierarchy and constant domain visibility.
+- **Stint Balance Color Logic**: Enhanced the `renderDriverCard` color-coding to reflect exact threshold bounds: `>= 300s` is Green (`var(--ok)`), `< 300s` is Yellow (`var(--warn)`), `<= 120s` is Red (`var(--alert)`), and `0s` blinks Red but exclusively if the main race status is `running`. 
+- **Mobile Portrait Optimization**: Reduced the overall vertical card padding and margin boundaries, decreasing unnecessary internal white-space and allowing much more of the card content to be visible vertically without needing to scroll.
+- **Mobile Landscape Grid Fix**: Upgraded the `#carousel` wrapper to utilize standard `flex` gaps and mathematically robust padding logic (`calc(50% - 6px)`), allowing exactly two completely clean non-overflowing cards to sit side-by-side perfectly.
