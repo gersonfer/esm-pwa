@@ -106,48 +106,22 @@
     if(left < 120) nameColor="var(--alert)";
     else if(left < 300) nameColor="var(--warn)";
 
-    // Lógica de Bordas/Fundo (Check-in)
-    let bg="", border="", nameBlack="", metaBlack="", pctBlack="";
-
-    if (d.check_in) {
-      border = "border:2px solid var(--warn)";
-      if (left < 60) {
-        bg = "background:#ff0000"; border = "border:2px solid #000";
-        nameBlack = "color:#000"; metaBlack = "color:#000"; pctBlack = "color:#000";
-      } else if (left < 120) {
-        bg = "background:#ff0000"; border = "border:2px solid #ffcc00";
-        nameBlack = "color:#000"; metaBlack = "color:#000"; pctBlack = "color:#000";
-      } else if (left < 300) {
-        bg = "background:#ffcc00"; border = "border:2px solid #e74c3c";
-        nameBlack = "color:#000"; metaBlack = "color:#000"; pctBlack = "color:#000";
-      }
-    }
-
-    const boxStyle = d.check_in
-      ? `${bg}; ${border}; border-radius:6px; padding:4px;`
-      : `background:transparent;`;
-
-    // === LÓGICA DO POSITION TIMER (NOVO) ===
+    // === LÓGICA DO POSITION TIMER ===
     let posHtml = "";
     let posBarHtml = "";
     
     // Verifica se position_time_sec existe e é um número (vem do JSON)
     if (d.check_in && typeof d.position_time_sec === 'number') {
         const pSec = d.position_time_sec;
-        
-        // Cores baseadas no tempo (Ciano -> Amarelo -> Vermelho)
         let pColor = "#00ffff"; // Ciano
         if (pSec > 40) pColor = "#ffff00"; // Amarelo
         if (pSec > 50) pColor = "#ff0000"; // Vermelho
 
-        // Badge ao lado do nome
-        // Se o fundo estiver vermelho (stint crítico), usamos preto, senão a cor neon
-        const textColor = (nameBlack.includes("#000")) ? "#000" : pColor;
-        const textShadow = (nameBlack.includes("#000")) ? "none" : `0 0 5px ${pColor}`;
+        const textColor = pColor;
+        const textShadow = `0 0 5px ${pColor}`;
         
         posHtml = `<span class="pos-badge" style="color:${textColor}; text-shadow:${textShadow}">⏱ ${pSec}s</span>`;
 
-        // Barra inferior
         const pPct = Math.min(100, (pSec / 60) * 100);
         posBarHtml = `
           <div class="pos-bar-container" style="display:block">
@@ -156,14 +130,29 @@
         `;
     }
 
+    const stateClass = d.check_in ? "check-in" : "box";
+    const stateText = d.check_in ? "CHECK-IN" : "BOX";
+    const largeTimeStyle = d.check_in 
+      ? `font-size: 1.8rem; font-family: monospace; font-weight: bold; line-height: 1;` 
+      : `font-size: 1.2rem; font-family: monospace; font-weight: bold; color: var(--muted);`;
+
     return `
-      <div class="driver-row" style="${boxStyle} opacity:${opacity}">
+      <div class="driver-row" style="opacity:${opacity};">
         <div class="driver-name">
-          <span style="${d.check_in ? nameBlack : `color:${nameColor}`}; font-size:1.30rem; font-weight:600; display:flex; align-items:center;">
-            ${d.name}
-            <span class="medals">${medals(d.skill)}</span>
-            ${posHtml} </span>
-          <span style="${pctBlack}">${pct}%</span>
+          <div class="driver-info-left">
+            <div style="font-size:1.15rem; font-weight:600; color:${nameColor}; display:flex; align-items:center;">
+              ${d.name}
+              <span class="medals">${medals(d.skill)}</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px; margin-top:2px;">
+              <span class="state-badge ${stateClass}">${stateText}</span>
+              ${posHtml}
+            </div>
+          </div>
+          <div class="driver-info-right">
+            <span style="${largeTimeStyle}">${fmt(left)}</span>
+            <span style="font-size:0.8rem; color:var(--muted); margin-top:2px;">${pct}%</span>
+          </div>
         </div>
 
         <div class="progress">
@@ -171,12 +160,6 @@
         </div>
         
         ${posBarHtml}
-
-        <div class="driver-meta">
-          <span style="${metaBlack}; font-size:1.10rem; font-weight:600;">
-            ${fmt(done)} / ${fmt(left)}
-          </span>
-        </div>
       </div>
     `;
   }
@@ -191,7 +174,7 @@
         ${teams.map((team,i)=>{
           return `
             <div class="card-desktop ${team.deck ? "deck-active" : ""}"
-                 style="border-color:${team.color||"#888"}">
+                 style="border-top: 4px solid ${team.color||"#888"}">
               <h3>${team.team_name}
                 <span class="team-stars">${stars(team.category)}</span>
               </h3>
@@ -215,7 +198,7 @@
     main.innerHTML = `
       <div id="carousel">
         ${teams.map((team,i)=>`
-          <div class="carousel-card" style="border-color:${team.color||"#888"}">
+          <div class="carousel-card" style="border-top: 4px solid ${team.color||"#888"}">
             <h3>${team.team_name}
               <span class="team-stars">${stars(team.category)}</span>
             </h3>
