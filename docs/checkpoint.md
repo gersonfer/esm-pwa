@@ -52,3 +52,12 @@ Status: **COMPLETED**
 - **DECK Status Label**: Explicitly mapped the `team.deck` state to visually push a `[DECK]` badge to the far right corner of the team header, complementing the greyed-out card styling.
 - **Stints Link Evolution**: Minimized the old full-text "Stints" button into a sleek, transparent clipboard icon (`📋`) bound dynamically to the bottom-left of every team card.
 - **Portrait Vertical Spacing**: Introduced the `.drivers-container` wrapper to dynamically handle spacing within the `.carousel-card`. Using targeted `@media` queries exclusively for mobile portrait, the active driver and timer rows are now perfectly distributed inside the card's height, eradicating the compressed "top-heavy" look while explicitly leaving the landscape twin-grid untouched.
+
+Task 001.6 — Standardizing UI of stints.html (PWA Viewer)
+Status: **COMPLETED**
+
+### Summary of Completed Work
+- **Card Layout Uniformity**: Wrapped the content of `stints.html` inside a new `.stints-card` element, sharing the identical shadow, background, layout dimensions, and dynamic top border color mapping as `index.html`.
+- **Typographic & Hierarchy Synchronization**: Swapped the clunky text-based "<- Race" back button for a minimalist, SVG-based caret button that feels significantly cleaner, mapping to the new streamlined aesthetic constraints.
+- **Color Re-Mapping**: Addressed the anomalous legacy yellow tint embedded in `.stint-header` by overriding it with the native design token `rgba(255, 255, 255, 0.05)`, removing visual friction across pages.
+- **Responsive Padding Integrity**: Included specific logic in the `@media (max-width: 899px)` block to constrain card paddings dynamically, so mobile views preserve the consistent flow and padding density seen natively in `index.html`.
