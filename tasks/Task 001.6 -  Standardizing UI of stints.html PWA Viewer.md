@@ -1,4 +1,4 @@
-PROMPT — Task 001.6: Standardizing UI of stints.html (PWA Viewer)
+Task 001.6 -  Standardizing UI of stints.html (PWA Viewer)
 
 OBJECTIVE:
 Standardize the visual design of stints.html to match EXACTLY the design system used in index.html.
@@ -112,6 +112,9 @@ DELIVERABLE:
 - Updated stints.html
 - Updated styles.css (if needed, but reuse as much as possible)
 - ZERO logic changes
+- Update checkpoint.md with the changes made
+- Commit changes to git with the message "Task 001.6 -  Standardizing UI of stints.html PWA Viewer"
+
 
 ---
 
