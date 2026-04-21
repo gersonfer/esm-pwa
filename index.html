@@ -154,16 +154,16 @@
     $("#main").innerHTML = `
       <div id="grid">
         ${teams.map((team,i)=>{
-          const hasActiveDriver = (team.drivers||[]).some(d => d.check_in);
           let boxHtml = "";
-          if (!hasActiveDriver) {
-             const driverWithTimer = (team.drivers||[]).find(d => typeof d.position_time_sec === 'number');
+          if (team.box === true || team.is_box === true || team.flag === "box") {
+             const timerRaw = team.box_timer ?? team.box_time;
              let timerStr = "";
-             if (driverWithTimer) {
-               const s = driverWithTimer.position_time_sec;
-               const m = Math.floor(s/60).toString().padStart(2, '0');
-               const sec = (s%60).toString().padStart(2, '0');
+             if (typeof timerRaw === "number") {
+               const m = Math.floor(timerRaw/60).toString().padStart(2, "0");
+               const sec = (timerRaw%60).toString().padStart(2, "0");
                timerStr = ` ${m}:${sec}`;
+             } else if (typeof timerRaw === "string") {
+               timerStr = ` ${timerRaw}`;
              }
              boxHtml = `<span class="badge-box">BOX${timerStr}</span>`;
           }
@@ -196,16 +196,16 @@
     main.innerHTML = `
       <div id="carousel">
         ${teams.map((team,i)=>{
-          const hasActiveDriver = (team.drivers||[]).some(d => d.check_in);
           let boxHtml = "";
-          if (!hasActiveDriver) {
-             const driverWithTimer = (team.drivers||[]).find(d => typeof d.position_time_sec === 'number');
+          if (team.box === true || team.is_box === true || team.flag === "box") {
+             const timerRaw = team.box_timer ?? team.box_time;
              let timerStr = "";
-             if (driverWithTimer) {
-               const s = driverWithTimer.position_time_sec;
-               const m = Math.floor(s/60).toString().padStart(2, '0');
-               const sec = (s%60).toString().padStart(2, '0');
+             if (typeof timerRaw === "number") {
+               const m = Math.floor(timerRaw/60).toString().padStart(2, "0");
+               const sec = (timerRaw%60).toString().padStart(2, "0");
                timerStr = ` ${m}:${sec}`;
+             } else if (typeof timerRaw === "string") {
+               timerStr = ` ${timerRaw}`;
              }
              boxHtml = `<span class="badge-box">BOX${timerStr}</span>`;
           }

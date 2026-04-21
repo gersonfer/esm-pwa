@@ -18,3 +18,11 @@ Status: **COMPLETED**
 - **Noise Reduction**: Completely eliminated progress bars and redundant BOX badges from driver rows, shifting focus entirely onto the numbers.
 - **Layout Consistency**: Standardized driver layouts based on activity state. Active drivers present a dominant large stint balance with an optional inline positional timer (`⏱ 11s`). Inactive drivers concisely show their name, skill badge, and remaining stint balance.
 - **Header Refinement**: Increased the prominence of the main race timer (`1.4rem`) while keeping track badges compact.
+
+Task 001.2 — Fix BOX State Rendering (Remove Invalid Inference)
+Status: **COMPLETED**
+
+### Summary of Completed Work
+- **Logic Correction**: Fully removed the UI-layer inference that falsely derived a `BOX` state when no driver was checked in.
+- **Strict Data Binding**: Rewrote the team header logic to render the `BOX` state exclusively when explicitly commanded by the backend payload (using `team.is_box`, `team.box`, or `team.flag`).
+- **Timer Handling**: Pit timers are now safely drawn only if explicitly provided (`team.box_timer` or `team.box_time`), otherwise rendering a clean `BOX` badge without guessing values from inactive drivers.
