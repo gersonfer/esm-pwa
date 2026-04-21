@@ -61,3 +61,12 @@ Status: **COMPLETED**
 - **Typographic & Hierarchy Synchronization**: Swapped the clunky text-based "<- Race" back button for a minimalist, SVG-based caret button that feels significantly cleaner, mapping to the new streamlined aesthetic constraints.
 - **Color Re-Mapping**: Addressed the anomalous legacy yellow tint embedded in `.stint-header` by overriding it with the native design token `rgba(255, 255, 255, 0.05)`, removing visual friction across pages.
 - **Responsive Padding Integrity**: Included specific logic in the `@media (max-width: 899px)` block to constrain card paddings dynamically, so mobile views preserve the consistent flow and padding density seen natively in `index.html`.
+
+Task 001.7 — Preserve Carousel Position (PWA UX Fix)
+Status: **COMPLETED**
+
+### Summary of Completed Work
+- **Global Click Handler**: Replaced standard static `<button>` href jumps with a new global `window._goToStints(teamId, cardIndex)` function to safely capture context prior to route navigation.
+- **Session State Cache**: The new navigation helper leverages `sessionStorage.setItem('esm_active_card', cardIndex)` to cache the exact position of the carousel right before shifting context to `stints.html`.
+- **Safe Initialization Check**: Within `renderMobile`, injected a single-pass `restoredCarousel` check to process the initial PWA load frame safely.
+- **Robust DOM Restoration**: The logic reads from `sessionStorage`, validates the target index, drops the key to cleanly reset state, and uses a slight `setTimeout` combined with `.scrollIntoView({ behavior: 'instant', inline: 'center' })` to flawlessly lock the carousel into place—triggering the correct visual dot updates simultaneously without interfering with native CSS snapping.

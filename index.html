@@ -31,6 +31,14 @@
       const $ = q => document.querySelector(q);
       let activeCardIndex = 0;
       let lastSnapshot = null;
+      let restoredCarousel = false;
+
+      window._goToStints = function(teamId, cardIndex) {
+        if (isMobile() && cardIndex !== undefined) {
+          sessionStorage.setItem('esm_active_card', cardIndex);
+        }
+        window.location.href = `stints.html?team=${teamId}`;
+      };
 
       function isMobile() {
         return window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 900;
@@ -192,7 +200,7 @@
                 ${(team.drivers || []).map(d => renderDriverCard(d)).join("")}
               </div>
               <div style="margin-top: auto; padding-top: 8px;">
-                <button class="stints-icon-btn" onclick="window.location.href='stints.html?team=${team.team_id}'" title="Stints">📋</button>
+                <button class="stints-icon-btn" onclick="window._goToStints(${team.team_id}, ${i})" title="Stints">📋</button>
               </div>
             </div>
           `;
@@ -233,7 +241,7 @@
                 ${(team.drivers || []).map(d => renderDriverCard(d)).join("")}
               </div>
               <div style="margin-top: auto; padding-top: 8px;">
-                <button class="stints-icon-btn" onclick="window.location.href='stints.html?team=${team.team_id}'" title="Stints">📋</button>
+                <button class="stints-icon-btn" onclick="window._goToStints(${team.team_id}, ${i})" title="Stints">📋</button>
               </div>
             </div>
           `;
@@ -242,7 +250,29 @@
     `;
 
         const el = $("#carousel");
-        el.scrollLeft = prevScroll;
+        
+        if (!restoredCarousel) {
+          restoredCarousel = true;
+          const savedIndex = sessionStorage.getItem('esm_active_card');
+          if (savedIndex !== null) {
+            const targetIndex = parseInt(savedIndex);
+            sessionStorage.removeItem('esm_active_card');
+            setTimeout(() => {
+              const cards = el.querySelectorAll(".carousel-card");
+              if (cards[targetIndex]) {
+                cards[targetIndex].scrollIntoView({ behavior: 'instant', block: 'nearest', inline: 'center' });
+                activeCardIndex = targetIndex;
+                document.querySelectorAll(".dot").forEach((d, idx) => {
+                  d.classList.toggle("active", idx === activeCardIndex);
+                });
+              }
+            }, 50);
+          } else {
+            el.scrollLeft = prevScroll;
+          }
+        } else {
+          el.scrollLeft = prevScroll;
+        }
 
         const dots = $("#dots");
         dots.innerHTML = teams.map((_, i) => `
