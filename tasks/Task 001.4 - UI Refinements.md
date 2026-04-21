@@ -1,4 +1,5 @@
-# Task 001.3 — UI Refinements (No WebSocket Changes)
+# Task 001.4
+ — UI Refinements (No WebSocket Changes)
 
 ## Objective
 Improve visual clarity, responsiveness and domain readability of Live PWA UI without modifying:
