@@ -35,7 +35,7 @@ Status: **COMPLETED**
 - **Timestamp Calculation**: Refactored the pit timer to calculate elapsed time dynamically using `Math.floor(Date.now() / 1000 - team.mandatory_stop_start)`, rendering correctly formatted `MM:SS` logic directly inside the team header.
 - **No Regressions**: Checked-in driver logic and Decked team logic remains intact and purely distinct from pit status.
 
-Task 001.3 — UI Refinements (No WebSocket Changes)
+Task 001.4 — UI Refinements (No WebSocket Changes)
 Status: **COMPLETED**
 
 ### Summary of Completed Work
@@ -43,3 +43,12 @@ Status: **COMPLETED**
 - **Stint Balance Color Logic**: Enhanced the `renderDriverCard` color-coding to reflect exact threshold bounds: `>= 300s` is Green (`var(--ok)`), `< 300s` is Yellow (`var(--warn)`), `<= 120s` is Red (`var(--alert)`), and `0s` blinks Red but exclusively if the main race status is `running`. 
 - **Mobile Portrait Optimization**: Reduced the overall vertical card padding and margin boundaries, decreasing unnecessary internal white-space and allowing much more of the card content to be visible vertically without needing to scroll.
 - **Mobile Landscape Grid Fix**: Upgraded the `#carousel` wrapper to utilize standard `flex` gaps and mathematically robust padding logic (`calc(50% - 6px)`), allowing exactly two completely clean non-overflowing cards to sit side-by-side perfectly.
+
+Task 001.5 — Final UI Refinements
+Status: **COMPLETED**
+
+### Summary of Completed Work
+- **Consistent Driver Skills**: Validated that `medals(d.skill)` correctly applies to both Active and Inactive driver rows across the board.
+- **DECK Status Label**: Explicitly mapped the `team.deck` state to visually push a `[DECK]` badge to the far right corner of the team header, complementing the greyed-out card styling.
+- **Stints Link Evolution**: Minimized the old full-text "Stints" button into a sleek, transparent clipboard icon (`📋`) bound dynamically to the bottom-left of every team card.
+- **Portrait Vertical Spacing**: Introduced the `.drivers-container` wrapper to dynamically handle spacing within the `.carousel-card`. Using targeted `@media` queries exclusively for mobile portrait, the active driver and timer rows are now perfectly distributed inside the card's height, eradicating the compressed "top-heavy" look while explicitly leaving the landscape twin-grid untouched.

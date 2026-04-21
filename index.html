@@ -135,9 +135,9 @@
         if (d.check_in) {
           const blinkClass = isBlink ? " blink-text" : "";
           return `
-        <div class="driver-row" style="opacity:1;">
+        <div class="driver-row active-driver-row" style="opacity:1;">
           <div class="driver-name" style="align-items:center;">
-            <div class="driver-info-left" style="gap:4px;">
+            <div class="driver-info-left active-info-left">
               <div class="${blinkClass}" style="font-size:2.2rem; font-family:monospace; font-weight:bold; line-height:1; color:${nameColor};">${fmt(left)}</div>
               <div style="font-size:1.15rem; font-weight:600; color:var(--text); display:flex; align-items:center;">
                 ${d.name} ${medals(d.skill)} ${checkInHtml}
@@ -186,9 +186,14 @@
                 ${team.team_name}
                 ${stars(team.category)}
                 ${boxHtml}
+                ${team.deck ? '<span class="badge-box" style="margin-left:auto;">DECK</span>' : ''}
               </h3>
-              <button class="stints-btn" onclick="window.location.href='stints.html?team=${team.team_id}'">📋 Stints</button>
-              ${(team.drivers || []).map(d => renderDriverCard(d)).join("")}
+              <div class="drivers-container">
+                ${(team.drivers || []).map(d => renderDriverCard(d)).join("")}
+              </div>
+              <div style="margin-top: auto; padding-top: 8px;">
+                <button class="stints-icon-btn" onclick="window.location.href='stints.html?team=${team.team_id}'" title="Stints">📋</button>
+              </div>
             </div>
           `;
         }).join("")}
@@ -222,9 +227,14 @@
                 ${team.team_name}
                 ${stars(team.category)}
                 ${boxHtml}
+                ${team.deck ? '<span class="badge-box" style="margin-left:auto;">DECK</span>' : ''}
               </h3>
-              <button class="stints-btn" onclick="window.location.href='stints.html?team=${team.team_id}'">📋 Stints</button>
-              ${(team.drivers || []).map(d => renderDriverCard(d)).join("")}
+              <div class="drivers-container">
+                ${(team.drivers || []).map(d => renderDriverCard(d)).join("")}
+              </div>
+              <div style="margin-top: auto; padding-top: 8px;">
+                <button class="stints-icon-btn" onclick="window.location.href='stints.html?team=${team.team_id}'" title="Stints">📋</button>
+              </div>
             </div>
           `;
         }).join("")}

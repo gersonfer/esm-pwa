@@ -186,12 +186,32 @@ header {
   font-size: 1.15rem;
 }
 
-.carousel-card .stints-btn {
-  margin-bottom: 6px;
-}
-
 @media (orientation: landscape) {
   .carousel-card { flex: 0 0 calc(50% - 6px); }
+}
+
+@media (max-width: 899px) and (orientation: portrait) {
+  .carousel-card {
+    justify-content: space-between;
+  }
+  .drivers-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .carousel-card .active-driver-row {
+    flex: 1;
+    justify-content: center;
+    padding: 24px 12px;
+    margin-bottom: 16px;
+  }
+  .carousel-card .active-info-left {
+    gap: 20px;
+  }
+  .carousel-card .driver-row:not(.active-driver-row) {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
 }
 
 /* === DOTS (mobile) === */
@@ -477,28 +497,28 @@ header {
 }
 
 /* === STINTS BUTTON (in team cards) === */
-.stints-btn {
+.stints-icon-btn {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  background: rgba(255, 204, 0, 0.12);
-  border: 1px solid var(--accent);
-  color: var(--accent);
-  border-radius: 6px;
-  padding: 4px 10px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  border-radius: 4px;
+  padding: 6px;
+  font-size: 1.4rem;
   cursor: pointer;
-  margin-bottom: 8px;
-  transition: background 0.2s ease;
+  transition: all 0.2s ease;
+  margin-left: -6px;
 }
 
-.stints-btn:hover {
-  background: rgba(255, 204, 0, 0.25);
+.stints-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
 }
 
-.stints-btn:active {
-  transform: scale(0.97);
+.stints-icon-btn:active {
+  transform: scale(0.95);
 }
 
 /* === STINTS PAGE === */
