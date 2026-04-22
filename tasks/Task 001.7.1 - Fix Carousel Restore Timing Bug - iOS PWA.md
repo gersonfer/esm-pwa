@@ -1,4 +1,4 @@
-PROMPT — Task 001.7.1: Fix Carousel Restore Timing Bug (iOS PWA)
+PROMPT — Task 001.7.1 - Fix Carousel Restore Timing Bug (iOS PWA)
 
 OBJECTIVE:
 Fix the bug where carousel position is NOT restored correctly after returning from stints.html.
