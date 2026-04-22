@@ -251,24 +251,27 @@
 
         const el = $("#carousel");
         
-        if (!restoredCarousel) {
-          restoredCarousel = true;
+        if (!restoredCarousel && teams.length > 0) {
           const savedIndex = sessionStorage.getItem('esm_active_card');
           if (savedIndex !== null) {
             const targetIndex = parseInt(savedIndex);
-            sessionStorage.removeItem('esm_active_card');
             setTimeout(() => {
               const cards = el.querySelectorAll(".carousel-card");
-              if (cards[targetIndex]) {
-                cards[targetIndex].scrollIntoView({ behavior: 'instant', block: 'nearest', inline: 'center' });
+              if (cards.length > 0 && cards[targetIndex]) {
+                cards[targetIndex].scrollIntoView({
+                  behavior: 'auto',
+                  inline: 'center'
+                });
                 activeCardIndex = targetIndex;
                 document.querySelectorAll(".dot").forEach((d, idx) => {
                   d.classList.toggle("active", idx === activeCardIndex);
                 });
+                sessionStorage.removeItem('esm_active_card');
+                restoredCarousel = true;
               }
-            }, 50);
+            }, 80);
           } else {
-            el.scrollLeft = prevScroll;
+            restoredCarousel = true;
           }
         } else {
           el.scrollLeft = prevScroll;

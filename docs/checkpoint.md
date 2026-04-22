@@ -70,3 +70,10 @@ Status: **COMPLETED**
 - **Session State Cache**: The new navigation helper leverages `sessionStorage.setItem('esm_active_card', cardIndex)` to cache the exact position of the carousel right before shifting context to `stints.html`.
 - **Safe Initialization Check**: Within `renderMobile`, injected a single-pass `restoredCarousel` check to process the initial PWA load frame safely.
 - **Robust DOM Restoration**: The logic reads from `sessionStorage`, validates the target index, drops the key to cleanly reset state, and uses a slight `setTimeout` combined with `.scrollIntoView({ behavior: 'instant', inline: 'center' })` to flawlessly lock the carousel into place—triggering the correct visual dot updates simultaneously without interfering with native CSS snapping.
+Task 001.7.2 — FIX FINAL Carousel Restore (WebSocket Timing + Empty Render Bug)
+Status: **COMPLETED**
+
+### Summary of Completed Work
+- **Strict Execution Boundaries**: Hardened the logic inside `renderMobile()` so that the `sessionStorage` checks will *only* execute if `teams.length > 0`—meaning it correctly waits for the actual live WebSocket payload to draw the UI before trying to index into nonexistent child DOM nodes.
+- **Safe State Transitions**: Moved the `sessionStorage.removeItem('esm_active_card')` and `restoredCarousel = true` declarations *into* the `setTimeout` callback. They now exclusively flip only if `cards[targetIndex]` proves it safely exists, killing the edge-case where a slow network previously "consumed" the save token during the initial empty render.
+- **Enhanced Transitioning**: Adjusted the final scroll command to `{ behavior: 'auto' }` with a slightly longer timeout of `80ms` to guarantee native browser reflows register the element completely on PWA environments before shifting focus.
