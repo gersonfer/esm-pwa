@@ -131,7 +131,7 @@
 
         // === LÓGICA DO POSITION TIMER ===
         let checkInHtml = "";
-        if (d.check_in && typeof d.position_time_sec === 'number') {
+        if (d.position_time_sec != null) {
           const pSec = d.position_time_sec;
           let pColor = "#00ffff"; // Ciano
           if (pSec > 40) pColor = "#ffff00"; // Amarelo
@@ -179,9 +179,8 @@
       <div id="grid">
         ${teams.map((team, i) => {
           let boxHtml = "";
-          if (team.mandatory_stop_start) {
-            const now = Date.now() / 1000;
-            const elapsed = Math.floor(now - team.mandatory_stop_start);
+          if (team.is_box) {
+            const elapsed = Math.floor(team.box_elapsed_sec || 0);
             const m = Math.floor(elapsed / 60).toString().padStart(2, "0");
             const s = (elapsed % 60).toString().padStart(2, "0");
             boxHtml = `<span class="badge-box">BOX ${m}:${s}</span>`;
@@ -221,9 +220,8 @@
       <div id="carousel">
         ${teams.map((team, i) => {
           let boxHtml = "";
-          if (team.mandatory_stop_start) {
-            const now = Date.now() / 1000;
-            const elapsed = Math.floor(now - team.mandatory_stop_start);
+          if (team.is_box) {
+            const elapsed = Math.floor(team.box_elapsed_sec || 0);
             const m = Math.floor(elapsed / 60).toString().padStart(2, "0");
             const s = (elapsed % 60).toString().padStart(2, "0");
             boxHtml = `<span class="badge-box">BOX ${m}:${s}</span>`;
@@ -323,15 +321,6 @@
       connect();
 
       // === STINTS MODAL ===
-      function fmtTs(ts) {
-        if (!ts) return "—";
-        const d = new Date(ts * 1000);
-        const hh = String(d.getHours()).padStart(2, "0");
-        const mm = String(d.getMinutes()).padStart(2, "0");
-        const ss = String(d.getSeconds()).padStart(2, "0");
-        return `${hh}:${mm}:${ss}`;
-      }
-
       function showModal(html) {
         const content = $("#stint-content");
         content.innerHTML = html;
@@ -348,7 +337,7 @@
         const team = (snap.teams || [])[teamId];
         if (!team) return;
 
-        const stints = (team.stint_history || []).slice().sort((a, b) => a.started_at - b.started_at);
+        const stints = (team.stint_history || []).slice().sort((a, b) => (a.started_at > b.started_at ? 1 : (a.started_at < b.started_at ? -1 : 0)));
 
         let html = `<h2>${team.team_name}</h2>`;
         html += `<button class="modal-close-btn" onclick="closeModal()">✕ Fechar</button>`;
@@ -359,14 +348,11 @@
           html += `<div class="stint-list">`;
           stints.forEach((s, idx) => {
             const driverName = s.driver_name || "Desconhecido";
-            const started = fmtTs(s.started_at);
-            const ended = s.ended_at ? fmtTs(s.ended_at) : "AGORA";
-            const duration = (s.started_at && s.ended_at) ? ` • ${fmt(s.ended_at - s.started_at)}` : "";
+            const duration = s.duration_sec != null ? ` • ${fmt(s.duration_sec)}` : " • ATIVO";
             html += `
           <div class="stint-row" onclick="window._openDriver(${teamId},'${driverName.replace(/'/g, "\\'")}')">
             <span class="stint-num">#${idx + 1}</span>
             <span class="stint-driver">${driverName}</span>
-            <span class="stint-time">${started} → ${ended}</span>
             <span class="stint-detail">${duration}</span>
           </div>
         `;
@@ -388,7 +374,7 @@
         const stints = (team.stint_history || [])
           .filter(s => String(s.driver_id) === String(driverId) || s.driver_name === driverId)
           .slice()
-          .sort((a, b) => a.started_at - b.started_at);
+          .sort((a, b) => (a.started_at > b.started_at ? 1 : (a.started_at < b.started_at ? -1 : 0)));
 
         let html = `<button class="modal-back-btn" onclick="window._openTeamModal(${teamId})">← Voltar</button>`;
         html += `<h2>${driverName}</h2>`;
@@ -399,13 +385,10 @@
         } else {
           html += `<div class="stint-list">`;
           stints.forEach((s, idx) => {
-            const started = fmtTs(s.started_at);
-            const ended = s.ended_at ? fmtTs(s.ended_at) : "AGORA";
-            const duration = (s.started_at && s.ended_at) ? ` • ${fmt(s.ended_at - s.started_at)}` : "";
+            const duration = s.duration_sec != null ? ` • ${fmt(s.duration_sec)}` : " • ATIVO";
             html += `
           <div class="stint-row stint-detail">
             <span class="stint-num">#${idx + 1}</span>
-            <span class="stint-time">${started} → ${ended}</span>
             <span class="stint-detail">${duration}</span>
           </div>
         `;

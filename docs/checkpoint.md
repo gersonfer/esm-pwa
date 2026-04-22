@@ -77,3 +77,12 @@ Status: **COMPLETED**
 - **Strict Execution Boundaries**: Hardened the logic inside `renderMobile()` so that the `sessionStorage` checks will *only* execute if `teams.length > 0`—meaning it correctly waits for the actual live WebSocket payload to draw the UI before trying to index into nonexistent child DOM nodes.
 - **Safe State Transitions**: Moved the `sessionStorage.removeItem('esm_active_card')` and `restoredCarousel = true` declarations *into* the `setTimeout` callback. They now exclusively flip only if `cards[targetIndex]` proves it safely exists, killing the edge-case where a slow network previously "consumed" the save token during the initial empty render.
 - **Enhanced Transitioning**: Adjusted the final scroll command to `{ behavior: 'auto' }` with a slightly longer timeout of `80ms` to guarantee native browser reflows register the element completely on PWA environments before shifting focus.
+
+Task 002 — Frontend Timer Cleanup (Render-Only Mode)
+Status: **COMPLETED**
+
+### Summary of Completed Work
+- **Pure Render Layer**: Removed all instances of `Date.now()`, `new Date()`, and timestamp subtraction logic from `index.html` and the `stints.js` view model. The UI is now a 100% pure render layer dependent solely on values from the backend.
+- **Check-In UI Check**: Deprecated the requirement of `d.check_in` for the countdown visualization, shifting entirely to checking if `d.position_time_sec != null` exactly as instructed, to natively show or hide the countdown UI without recalculating thresholds.
+- **BOX UI Update**: Updated the team header logic to strictly query `team.is_box` and present `team.box_elapsed_sec`. It no longer locally generates pit stop duration from `mandatory_stop_start`.
+- **Modal Formatting**: Stripped the local time string conversion (`fmtTs`) and dynamic relative time generation logic from both the Stints list and Team Driver modals, natively utilizing `s.duration_sec` and falling back cleanly to "ATIVO" for uncompleted stints without evaluating timestamps.

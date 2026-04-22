@@ -38,7 +38,7 @@ export function buildStintViewModel(team, raceStatus) {
   const raw = (team.stint_history || [])
     .filter(s => s.ended_at != null)
     .slice()
-    .sort((a, b) => a.started_at - b.started_at);
+    .sort((a, b) => (a.started_at > b.started_at ? 1 : (a.started_at < b.started_at ? -1 : 0)));
 
   const historical = raw.map((s, idx) => {
     const currentDriverId = s.driver_id ?? null;
