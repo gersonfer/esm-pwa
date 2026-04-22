@@ -2,12 +2,8 @@ const CACHE_NAME = "esm-cache-v1";
 
 // Arquivos que PODEM ser cacheados (NÃO incluir index.html!)
 const ASSETS_TO_CACHE = [
-  "./manifest.json",
-  "./ui/js/main.js",
-  "./ui/js/i18n.js",
   "./styles.css",
-  "./fallback.html"   // <-- ADICIONADO
-];
+  "./fallback.html"
 
 self.addEventListener("message", event => {
   if (event.data && event.data.type === "SKIP_WAITING") {
