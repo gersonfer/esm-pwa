@@ -1,57 +1,80 @@
-const CACHE_NAME = "esm-cache-v1";
+const CACHE_NAME = "esm-cache-v2";
 
-// Arquivos que PODEM ser cacheados (NÃO incluir index.html!)
+// Apenas arquivos seguros (estáticos)
 const ASSETS_TO_CACHE = [
   "./styles.css",
   "./fallback.html"
+];
 
+// Permite atualizar o SW imediatamente
 self.addEventListener("message", event => {
   if (event.data && event.data.type === "SKIP_WAITING") {
     self.skipWaiting();
   }
 });
 
-// INSTALL — só faz cache dos assets listados (NÃO cacheia index.html)
+// INSTALL (robusto — não quebra se um asset falhar)
 self.addEventListener("install", event => {
-  self.skipWaiting(); // ativa imediatamente
+  self.skipWaiting();
+
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS_TO_CACHE))
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
+
+      for (const asset of ASSETS_TO_CACHE) {
+        try {
+          await cache.add(asset);
+        } catch (err) {
+          console.warn("SW cache failed:", asset, err);
+        }
+      }
+    })()
   );
 });
 
-// ACTIVATE — limpa TODO cache antigo
+// ACTIVATE — limpa versões antigas
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+      Promise.all(
+        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+      )
     )
   );
-  self.clients.claim(); // SW atual domina imediatamente
+
+  self.clients.claim();
 });
 
-// FETCH — regra inteligente:
-// • index.html e "/" → SEMPRE DA REDE (sem cache)
-// • arquivos estáticos → network-first com fallback
+// FETCH — estratégia segura para PWA + WebSocket
+
 self.addEventListener("fetch", event => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // Nunca cacheie o index.html (previne versão presa)
-  if (url.pathname === "/" || url.pathname.endsWith("index.html")) {
-    return event.respondWith(
-      fetch(req).catch(() => caches.match("./fallback.html"))  // <-- CORRIGIDO
-    );
+  // ❗ NÃO INTERFERIR com WebSocket
+  if (req.headers.get("upgrade") === "websocket") {
+    return;
   }
 
-  // Para demais arquivos, use network-first
+  // ❗ Nunca cachear HTML (evita travar deploy)
+  if (url.pathname === "/" || url.pathname.endsWith("index.html")) {
+    event.respondWith(
+      fetch(req).catch(() => caches.match("./fallback.html"))
+    );
+    return;
+  }
+
+  // 🔁 Network-first para assets
   event.respondWith(
     fetch(req)
       .then(res => {
-        // atualiza cache em background
-        return caches.open(CACHE_NAME).then(cache => {
-          cache.put(req, res.clone());
-          return res;
+        const copy = res.clone();
+
+        caches.open(CACHE_NAME).then(cache => {
+          cache.put(req, copy);
         });
+
+        return res;
       })
       .catch(() => caches.match(req))
   );
