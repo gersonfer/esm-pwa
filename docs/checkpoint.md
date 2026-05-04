@@ -86,3 +86,29 @@ Status: **COMPLETED**
 - **Check-In UI Check**: Deprecated the requirement of `d.check_in` for the countdown visualization, shifting entirely to checking if `d.position_time_sec != null` exactly as instructed, to natively show or hide the countdown UI without recalculating thresholds.
 - **BOX UI Update**: Updated the team header logic to strictly query `team.is_box` and present `team.box_elapsed_sec`. It no longer locally generates pit stop duration from `mandatory_stop_start`.
 - **Modal Formatting**: Stripped the local time string conversion (`fmtTs`) and dynamic relative time generation logic from both the Stints list and Team Driver modals, natively utilizing `s.duration_sec` and falling back cleanly to "ATIVO" for uncompleted stints without evaluating timestamps.
+
+Task 003 — Responsive Layout Refactor (Analysis)
+Status: **COMPLETED**
+
+### Summary of Completed Work
+- **Problem Identified**: `repeat(auto-fit, minmax(220px, 1fr))` is width-only and domain-blind. With 4 teams on a 1920 px screen it creates up to 8 columns; with 10 teams it produces arbitrary orphan rows. Team count — the primary domain variable — played no role in layout decisions.
+- **Strategy Evaluated**: Two strategies compared — Pure CSS (Strategy A: `auto-fit/minmax`) vs. JS-Driven Hybrid (Strategy B). Strategy A rejected as structurally inappropriate for an operational real-time dashboard. Strategy B adopted.
+- **Model Defined**: Column count = `min(preferred_by_team_count, feasible_by_viewport)`. Preferred lookup table: 1→1, 2–4→2, 5–9→3, 10+→4. Feasibility floor: `floor(viewport / 240px)`. Hard cap: 4 columns max.
+- **Simulations Produced**: Eight scenarios covering wide/medium/narrow screens at 2, 4, 6, 10, 12 teams — all with expected column output and UX assessment.
+- **Risks Documented**: Orphan rows (7, 10 teams), very small desktops (900–1024 px), resize oscillation, performance of resize handler.
+
+Task 003.1 — Responsive Layout Refactor (Implementation)
+Status: **COMPLETED**
+
+### Summary of Completed Work
+- **CSS Updated** (`styles.css`): Replaced `repeat(auto-fit, minmax(220px, 1fr))` with `repeat(var(--cols, 4), 1fr)`. The `--cols` custom property is now the sole driver of column count; CSS no longer participates in the column decision.
+- **Column Engine Added** (`index.html`): Implemented `computeColumns(teamCount)` — a pure function that derives preferred columns from team count (lookup table matching the analysis) and constrains them by `floor(window.innerWidth / 240)`, clamped between 1 and 4.
+- **Render Integration**: `renderDesktop()` calls `computeColumns(teams.length)` and sets `--cols` on `:root` before rebuilding the DOM. Columns are stable across WebSocket ticks; they only change when team count or viewport width changes.
+- **Resize Handler Added**: Debounced `window.resize` listener (150 ms) recalculates and applies `--cols` when on desktop. Guard `isMobile()` prevents the handler from interfering with the carousel path.
+- **Mobile Untouched**: Carousel (`renderMobile`), dots, and all sub-900 px behavior are completely unchanged.
+- **Validation Confirmed** (logic trace):
+  - Case A — 4 teams @ 1920 px: preferred=2, feasible=8 → **2 columns** ✅
+  - Case B — 6 teams @ 1920 px: preferred=3, feasible=8 → **3 columns** ✅
+  - Case C — 10 teams @ 1920 px: preferred=4, feasible=8 → **4 columns** ✅
+  - Case D — resize to 900 px with 10 teams: feasible=`floor(900/240)`=3 → **3 columns** (cards ≈ 290 px, above 240 px floor) ✅
+  - Case E — 0 teams: `computeColumns(0)` → preferred=1, fallback default `--cols=4` from CSS; empty grid renders cleanly ✅

@@ -33,6 +33,25 @@
       let lastSnapshot = null;
       let restoredCarousel = false;
 
+      // ── Domain-aware column engine (TASK-003) ──────────────────────────────
+      const MIN_CARD_WIDTH = 240; // px — minimum legible card width
+
+      function computeColumns(teamCount) {
+        // Step 1 — preferred columns from team count (analysis table)
+        let preferred;
+        if      (teamCount <= 1) preferred = 1;
+        else if (teamCount <= 4) preferred = 2;
+        else if (teamCount <= 9) preferred = 3;
+        else                     preferred = 4;
+
+        // Step 2 — feasible columns from viewport width
+        const feasible = Math.floor(window.innerWidth / MIN_CARD_WIDTH);
+
+        // Step 3 — final: domain-preferred, viewport-constrained, hard-capped at 4
+        return Math.max(1, Math.min(preferred, feasible, 4));
+      }
+      // ──────────────────────────────────────────────────────────────────────
+
       window._goToStints = function(teamId, cardIndex) {
         if (isMobile() && cardIndex !== undefined) {
           sessionStorage.setItem('esm_active_card', cardIndex);
@@ -175,6 +194,10 @@
       ============================================================ */
       function renderDesktop(data) {
         const teams = data.teams || [];
+
+        // Apply domain-aware column count before building the DOM
+        const cols = computeColumns(teams.length);
+        document.documentElement.style.setProperty('--cols', cols);
         $("#main").innerHTML = `
       <div id="grid">
         ${teams.map((team, i) => {
@@ -319,6 +342,19 @@
 
       render({ race_left_sec: 0, teams: [] });
       connect();
+
+      // ── Debounced resize handler (TASK-003) ───────────────────────────────
+      // Re-applies column count on window resize without touching the render loop.
+      let resizeTimeout;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          if (!lastSnapshot || isMobile()) return;
+          const cols = computeColumns((lastSnapshot.teams || []).length);
+          document.documentElement.style.setProperty('--cols', cols);
+        }, 150);
+      });
+      // ──────────────────────────────────────────────────────────────────────
 
       // === STINTS MODAL ===
       function showModal(html) {

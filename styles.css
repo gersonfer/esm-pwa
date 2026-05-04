@@ -57,9 +57,11 @@ header {
 }
 
 /* === DESKTOP GRID === */
+/* Columns are set via --cols by JS (computeColumns), not by CSS auto-fit.    */
+/* This makes layout domain-aware (team count) rather than width-only.        */
 #grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(var(--cols, 4), 1fr);
   grid-auto-rows: max-content;
   gap: 1vw;
   padding: 1vw;
