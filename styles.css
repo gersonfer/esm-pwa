@@ -52,8 +52,10 @@ header {
 
 #main {
   flex: 1;
-  overflow: hidden;   /* grid fills this box exactly — no scrollbar */
-  min-height: 0;      /* needed for flex children to respect shrink */
+  overflow: hidden;
+  /* grid fills this box exactly — no scrollbar */
+  min-height: 0;
+  /* needed for flex children to respect shrink */
 }
 
 /* === DESKTOP GRID (TASK-004) === */
@@ -63,7 +65,8 @@ header {
   display: grid;
   grid-template-columns: repeat(var(--cols, 4), 1fr);
   grid-template-rows: repeat(var(--rows, 3), 1fr);
-  height: 100%;           /* fill #main (which is flex:1 + overflow:hidden)  */
+  height: 100%;
+  /* fill #main (which is flex:1 + overflow:hidden)  */
   gap: clamp(4px, 0.6vw, 10px);
   padding: clamp(4px, 0.6vw, 10px);
   box-sizing: border-box;
@@ -76,7 +79,8 @@ header {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
-  overflow: hidden;   /* card must never grow outside its grid cell */
+  overflow: hidden;
+  /* card must never grow outside its grid cell */
   min-height: 0;
 }
 
@@ -151,8 +155,8 @@ header {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  flex: 1;
   min-width: 0;
+  max-width: 100%;
 }
 
 .badge-letter {
