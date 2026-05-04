@@ -33,22 +33,53 @@
       let lastSnapshot = null;
       let restoredCarousel = false;
 
-      // ── Domain-aware column engine (TASK-003) ──────────────────────────────
-      const MIN_CARD_WIDTH = 240; // px — minimum legible card width
+      // ── Domain-aware layout engine (TASK-003 / TASK-004) ─────────────────
+      const MIN_CARD_WIDTH  = 200; // px — minimum legible card width
+      const MIN_CARD_HEIGHT = 120; // px — minimum legible card height
+      const MAX_TEAMS       = 15;  // hard cap supported by the layout model
 
+      // Preferred column count from team count (analysis table)
       function computeColumns(teamCount) {
-        // Step 1 — preferred columns from team count (analysis table)
+        const n = Math.min(teamCount, MAX_TEAMS);
         let preferred;
-        if (teamCount <= 1) preferred = 1;
-        else if (teamCount <= 4) preferred = 2;
-        else if (teamCount <= 9) preferred = 3;
-        else preferred = 4;
+        if      (n <= 1)  preferred = 1;
+        else if (n <= 4)  preferred = 2;
+        else if (n <= 9)  preferred = 3;
+        else if (n <= 12) preferred = 4;
+        else              preferred = 5;  // 13–15 teams on wide screens
 
-        // Step 2 — feasible columns from viewport width
-        const feasible = Math.floor(window.innerWidth / MIN_CARD_WIDTH);
+        const feasible = Math.floor(window.innerWidth  / MIN_CARD_WIDTH);
+        return Math.max(1, Math.min(preferred, feasible, 5));
+      }
 
-        // Step 3 — final: domain-preferred, viewport-constrained, hard-capped at 4
-        return Math.max(1, Math.min(preferred, feasible, 4));
+      // Derived row count from team count and chosen columns
+      function computeRows(teamCount, cols) {
+        if (teamCount === 0) return 1;
+        const rows = Math.ceil(Math.min(teamCount, MAX_TEAMS) / cols);
+        // also constrain by viewport height so cards never go below min height
+        const maxByHeight = Math.floor(window.innerHeight / MIN_CARD_HEIGHT);
+        return Math.max(1, Math.min(rows, maxByHeight));
+      }
+
+      // Scale factor: 1.0 at 6 cells, shrinks toward 0.5 at 20 cells
+      // Controls font sizes and spacing inside cards via --card-scale
+      function computeCardScale(cols, rows) {
+        const cells = cols * rows;
+        // Anchor: 6 cells (2×3 or 3×2) = scale 1.0
+        // Each doubling of cells halves scale, minimum 0.45
+        const scale = Math.max(0.45, 1 / Math.sqrt(cells / 6));
+        return Math.round(scale * 100) / 100;
+      }
+
+      // Apply --cols, --rows, --card-scale atomically to :root
+      function applyLayout(teamCount) {
+        const cols  = computeColumns(teamCount);
+        const rows  = computeRows(teamCount, cols);
+        const scale = computeCardScale(cols, rows);
+        const root  = document.documentElement;
+        root.style.setProperty('--cols',       cols);
+        root.style.setProperty('--rows',       rows);
+        root.style.setProperty('--card-scale', scale);
       }
       // ──────────────────────────────────────────────────────────────────────
 
@@ -165,8 +196,8 @@
         <div class="driver-row active-driver-row" style="opacity:1; min-width:0;">
           <div class="driver-name" style="align-items:center;">
             <div class="driver-info-left active-info-left" style="min-width:0;">
-              <div class="${blinkClass}" style="font-size:2.2rem; font-family:monospace; font-weight:bold; line-height:1; color:${nameColor};">${fmt(left)}</div>
-              <div style="font-size:1.15rem; font-weight:600; color:var(--text); display:flex; align-items:center; min-width:0;">
+              <div class="${blinkClass}" style="font-size:calc(var(--card-scale,1)*2.2rem); font-family:monospace; font-weight:bold; line-height:1; color:${nameColor};">${fmt(left)}</div>
+              <div style="font-size:calc(var(--card-scale,1)*1.1rem); font-weight:600; color:var(--text); display:flex; align-items:center; min-width:0;">
                 <span class="driver-text">
                   ${d.display_name || d.name}
                 </span>
@@ -180,13 +211,13 @@
           return `
         <div class="driver-row" style="opacity:0.7;">
           <div class="driver-name" style="align-items:center;">
-            <div class="driver-info-left" style="flex-direction:row; align-items:center; font-size:1.05rem; font-weight:500; color:var(--text); min-width:0;">
+            <div class="driver-info-left" style="flex-direction:row; align-items:center; font-size:calc(var(--card-scale,1)*1rem); font-weight:500; color:var(--text); min-width:0;">
               <span class="driver-text">
                 ${d.display_name || d.name}
               </span>
               ${medals(d.skill)}
             </div>
-            <div class="driver-info-right" style="font-size:1.2rem; font-family:monospace; font-weight:bold; color:var(--muted);">
+            <div class="driver-info-right" style="font-size:calc(var(--card-scale,1)*1.1rem); font-family:monospace; font-weight:bold; color:var(--muted);">
               ${fmt(left)}
             </div>
           </div>
@@ -201,9 +232,8 @@
       function renderDesktop(data) {
         const teams = data.teams || [];
 
-        // Apply domain-aware column count before building the DOM
-        const cols = computeColumns(teams.length);
-        document.documentElement.style.setProperty('--cols', cols);
+        // Apply domain-aware layout (columns, rows, font scale) before DOM rebuild
+        applyLayout(teams.length);
         $("#main").innerHTML = `
       <div id="grid">
         ${teams.map((team, i) => {
@@ -349,15 +379,14 @@
       render({ race_left_sec: 0, teams: [] });
       connect();
 
-      // ── Debounced resize handler (TASK-003) ───────────────────────────────
-      // Re-applies column count on window resize without touching the render loop.
+      // ── Debounced resize handler (TASK-003 / TASK-004) ───────────────────
+      // Re-applies layout on window resize without touching the render loop.
       let resizeTimeout;
       window.addEventListener('resize', () => {
         clearTimeout(resizeTimeout);
         resizeTimeout = setTimeout(() => {
           if (!lastSnapshot || isMobile()) return;
-          const cols = computeColumns((lastSnapshot.teams || []).length);
-          document.documentElement.style.setProperty('--cols', cols);
+          applyLayout((lastSnapshot.teams || []).length);
         }, 150);
       });
       // ──────────────────────────────────────────────────────────────────────

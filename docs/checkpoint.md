@@ -112,3 +112,26 @@ Status: **COMPLETED**
   - Case C — 10 teams @ 1920 px: preferred=4, feasible=8 → **4 columns** ✅
   - Case D — resize to 900 px with 10 teams: feasible=`floor(900/240)`=3 → **3 columns** (cards ≈ 290 px, above 240 px floor) ✅
   - Case E — 0 teams: `computeColumns(0)` → preferred=1, fallback default `--cols=4` from CSS; empty grid renders cleanly ✅
+
+Task 004 — Adaptive Card Scaling (Viewport-Filling Layout)
+Status: **COMPLETED**
+
+### Summary of Completed Work
+- **Problem**: The grid used `grid-auto-rows: max-content`, so cards were sized by their own content and overflowed the viewport. The Race Director could not resize the browser window to control visibility without cards being cut off.
+- **Goal**: All N team cards always fill the entire viewport — columns and rows adapt jointly, and typography scales proportionally so nothing is ever truncated or clipped.
+- **`#main` overflow** (`styles.css`): Changed from `overflow-y: auto` to `overflow: hidden` + `min-height: 0`, making `#main` a fixed-size flex container the grid must fill exactly.
+- **Grid row axis** (`styles.css`): Replaced `grid-auto-rows: max-content` with `grid-template-rows: repeat(var(--rows, 3), 1fr)` and `height: 100%`. Rows share the available height equally — no overflow possible.
+- **`computeRows()`** (`index.html`): Derives row count from `ceil(teams / cols)`, constrained by `floor(innerHeight / 120px)` so cards never go below 120 px height.
+- **`computeCardScale()`** (`index.html`): Continuous scale factor `1 / sqrt(cells / 6)` clamped to 0.45 min. Anchor: 6 cells (2×3) = scale 1.0.
+- **`applyLayout()`** (`index.html`): Atomically sets `--cols`, `--rows`, and `--card-scale` on `:root` before each DOM rebuild and on debounced resize.
+- **Font scaling**: All key typographic sizes use `calc(var(--card-scale, 1) * Xrem)` — card h3, active countdown, driver name, inactive time, row padding, row gap.
+- **Team count range**: Extended to 15 teams; `MIN_CARD_WIDTH` reduced to 200 px; column cap raised to 5.
+- **Scale reference table**:
+
+  | Teams | Cols | Rows | Cells | `--card-scale` |
+  |-------|------|------|-------|----------------|
+  | 2–4   | 2    | 1–2  | 2–4   | 1.00           |
+  | 6     | 3    | 2    | 6     | 1.00 (anchor)  |
+  | 9     | 3    | 3    | 9     | 0.82           |
+  | 10–12 | 4    | 3    | 12    | 0.71           |
+  | 15    | 5    | 3    | 15    | 0.63           |
