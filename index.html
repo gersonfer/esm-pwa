@@ -196,7 +196,7 @@
             <div class="driver-row active-driver-row" style="opacity:1; min-width:0;">
               <div class="driver-name" style="display:flex; align-items:center; min-width:0;">
 
-                <!-- ESQUERDA: NOME + BADGES -->
+                <!-- LEFT: NAME + BADGES -->
                 <div style="
                   display:flex;
                   align-items:center;
@@ -214,7 +214,7 @@
                   ${medals(d.skill)} ${checkInHtml}
                 </div>
 
-                <!-- DIREITA: TEMPO GRANDE -->
+                <!-- RIGHT: LARGE TIME -->
                 <div class="${blinkClass}" style="
                   font-size:calc(var(--card-scale,1)*2.2rem);
                   font-family:monospace;
@@ -227,6 +227,22 @@
                   ${fmt(left)}
                 </div>
 
+              </div>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="driver-row" style="opacity:0.7;">
+              <div class="driver-name" style="align-items:center;">
+                <div class="driver-info-left" style="flex-direction:row; align-items:center; font-size:calc(var(--card-scale,1)*1rem); font-weight:500; color:var(--text); min-width:0;">
+                  <span class="driver-text">
+                    ${d.display_name || d.name}
+                  </span>
+                  ${medals(d.skill)}
+                </div>
+                <div class="driver-info-right" style="font-size:calc(var(--card-scale,1)*1.1rem); font-family:monospace; font-weight:bold; color:var(--muted);">
+                  ${fmt(left)}
+                </div>
               </div>
             </div>
           `;
