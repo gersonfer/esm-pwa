@@ -39,10 +39,10 @@
       function computeColumns(teamCount) {
         // Step 1 — preferred columns from team count (analysis table)
         let preferred;
-        if      (teamCount <= 1) preferred = 1;
+        if (teamCount <= 1) preferred = 1;
         else if (teamCount <= 4) preferred = 2;
         else if (teamCount <= 9) preferred = 3;
-        else                     preferred = 4;
+        else preferred = 4;
 
         // Step 2 — feasible columns from viewport width
         const feasible = Math.floor(window.innerWidth / MIN_CARD_WIDTH);
@@ -52,7 +52,7 @@
       }
       // ──────────────────────────────────────────────────────────────────────
 
-      window._goToStints = function(teamId, cardIndex) {
+      window._goToStints = function (teamId, cardIndex) {
         if (isMobile() && cardIndex !== undefined) {
           sessionStorage.setItem('esm_active_card', cardIndex);
         }
@@ -166,8 +166,11 @@
           <div class="driver-name" style="align-items:center;">
             <div class="driver-info-left active-info-left">
               <div class="${blinkClass}" style="font-size:2.2rem; font-family:monospace; font-weight:bold; line-height:1; color:${nameColor};">${fmt(left)}</div>
-              <div style="font-size:1.15rem; font-weight:600; color:var(--text); display:flex; align-items:center;">
-                ${d.name} ${medals(d.skill)} ${checkInHtml}
+              <div style="font-size:1.15rem; font-weight:600; color:var(--text); display:flex; align-items:center; min-width:0;">
+                <span class="driver-text">
+                  ${d.display_name || d.name}
+                </span>
+                ${medals(d.skill)} ${checkInHtml}
               </div>
             </div>
           </div>
@@ -177,8 +180,11 @@
           return `
         <div class="driver-row" style="opacity:0.7;">
           <div class="driver-name" style="align-items:center;">
-            <div class="driver-info-left" style="flex-direction:row; align-items:center; font-size:1.05rem; font-weight:500; color:var(--text);">
-              ${d.name} ${medals(d.skill)}
+            <div class="driver-info-left" style="flex-direction:row; align-items:center; font-size:1.05rem; font-weight:500; color:var(--text); min-width:0;">
+              <span class="driver-text">
+                ${d.display_name || d.name}
+              </span>
+              ${medals(d.skill)}
             </div>
             <div class="driver-info-right" style="font-size:1.2rem; font-family:monospace; font-weight:bold; color:var(--muted);">
               ${fmt(left)}
@@ -271,7 +277,7 @@
     `;
 
         const el = $("#carousel");
-        
+
         if (!restoredCarousel && teams.length > 0) {
           const savedIndex = sessionStorage.getItem('esm_active_card');
           if (savedIndex !== null) {

@@ -11,43 +11,43 @@
 }
 
 body {
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  display:flex;
-  flex-direction:column;
-  height:100vh;
-  overflow:hidden;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
 }
 
 header {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:.6rem 1rem;
-  background:#10141a80;
-  font-size:1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: .6rem 1rem;
+  background: #10141a80;
+  font-size: 1rem;
 }
 
-#track-badge{
-  display:none;
-  margin-left:.45rem;
-  background:var(--accent);
-  padding:.05rem .35rem;
-  border-radius:.35rem;
-  color:#000;
-  font-size:.8rem;
+#track-badge {
+  display: none;
+  margin-left: .45rem;
+  background: var(--accent);
+  padding: .05rem .35rem;
+  border-radius: .35rem;
+  color: #000;
+  font-size: .8rem;
 }
 
 #timer {
-  font-family:monospace;
-  font-weight:bold;
-  padding:.3rem .8rem;
-  border-radius:.5rem;
-  font-size:1.4rem;
-  border:3px solid var(--accent);
-  color:var(--accent);
+  font-family: monospace;
+  font-weight: bold;
+  padding: .3rem .8rem;
+  border-radius: .5rem;
+  font-size: 1.4rem;
+  border: 3px solid var(--accent);
+  color: var(--accent);
 }
 
 #main {
@@ -73,29 +73,30 @@ header {
   background: var(--card);
   border-radius: 8px;
   padding: clamp(10px, 1vw, 16px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
 }
 
-.card-desktop.deck-active{
-  background:var(--card-deck) !important;
+.card-desktop.deck-active {
+  background: var(--card-deck) !important;
 }
 
-.card-desktop h3{
-  margin:0 0 .8rem 0;
-  color:var(--accent);
-  font-size:1.25rem;
+.card-desktop h3 {
+  margin: 0 0 .8rem 0;
+  color: var(--accent);
+  font-size: 1.25rem;
 }
 
 .team-stars {
-  color:var(--muted);
-  font-size:1rem;
-  margin-left:.3rem;
+  color: var(--muted);
+  font-size: 1rem;
+  margin-left: .3rem;
 }
 
 /* Card da equipe quando está em DECK */
-.card-desktop.deck, .carousel-card.deck {
+.card-desktop.deck,
+.carousel-card.deck {
   background: var(--card-deck) !important;
 }
 
@@ -113,18 +114,26 @@ header {
   justify-content: space-between;
   align-items: flex-start;
   font-size: 1rem;
+  min-width: 0;
 }
 
 .driver-info-left {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
 }
 
 .driver-info-right {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+}
+
+.driver-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .badge-letter {
@@ -188,27 +197,33 @@ header {
 }
 
 @media (orientation: landscape) {
-  .carousel-card { flex: 0 0 calc(50% - 6px); }
+  .carousel-card {
+    flex: 0 0 calc(50% - 6px);
+  }
 }
 
 @media (max-width: 899px) and (orientation: portrait) {
   .carousel-card {
     justify-content: space-between;
   }
+
   .drivers-container {
     flex: 1;
     display: flex;
     flex-direction: column;
   }
+
   .carousel-card .active-driver-row {
     flex: 1;
     justify-content: center;
     padding: 24px 12px;
     margin-bottom: 16px;
   }
+
   .carousel-card .active-info-left {
     gap: 20px;
   }
+
   .carousel-card .driver-row:not(.active-driver-row) {
     padding: 12px;
     margin-bottom: 12px;
@@ -245,20 +260,20 @@ header {
 
 /* === UPDATE BANNER === */
 #update-banner {
-  display:none;
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  background:#ffcc00;
-  color:#000;
-  text-align:center;
-  padding:14px;
-  font-weight:bold;
-  font-size:1rem;
-  z-index:9999;
-  cursor:pointer;
-  box-shadow:0 -4px 12px rgba(0,0,0,0.3);
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #ffcc00;
+  color: #000;
+  text-align: center;
+  padding: 14px;
+  font-weight: bold;
+  font-size: 1rem;
+  z-index: 9999;
+  cursor: pointer;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* === POSITION TIMER (60s Rule) === */
@@ -268,21 +283,37 @@ header {
   margin-left: 8px;
   padding: 2px 6px;
   border-radius: 4px;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.6);
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  border: 1px solid rgba(255,255,255,0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 @keyframes pulse-text {
-  from { opacity: 0.8; transform: scale(1); }
-  to { opacity: 1; transform: scale(1.05); text-shadow: 0 0 8px currentColor; }
+  from {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1.05);
+    text-shadow: 0 0 8px currentColor;
+  }
 }
 
 @keyframes blink-text {
-  0%, 49% { opacity: 1; }
-  50%, 100% { opacity: 0; }
+
+  0%,
+  49% {
+    opacity: 1;
+  }
+
+  50%,
+  100% {
+    opacity: 0;
+  }
 }
 
 .blink-text {
@@ -395,7 +426,7 @@ header {
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.stint-header > span {
+.stint-header>span {
   color: var(--accent);
   font-size: 0.7rem;
   font-weight: 700;
@@ -493,8 +524,15 @@ header {
 }
 
 @keyframes active-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
 }
 
 /* === STINTS BUTTON (in team cards) === */
@@ -528,7 +566,7 @@ header {
   border-radius: 12px;
   padding: 16px;
   box-sizing: border-box;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
   max-width: 800px;
@@ -559,6 +597,7 @@ header {
   #stints-body {
     padding: 12px;
   }
+
   .stints-card {
     padding: 12px;
   }
