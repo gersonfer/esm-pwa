@@ -130,10 +130,11 @@ header {
 
 .driver-name {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start; /* badge stays adjacent to name */
   align-items: center;
   font-size: calc(var(--card-scale, 1) * 0.95rem);
   min-width: 0;
+  gap: calc(var(--card-scale, 1) * 6px);
 }
 
 .driver-info-left {
@@ -141,7 +142,7 @@ header {
   flex-direction: column;
   gap: calc(var(--card-scale, 1) * 3px);
   min-width: 0;
-  flex: 1;
+  /* no flex:1 — let it wrap tightly around name+badge */
 }
 
 .driver-info-right {
@@ -149,6 +150,7 @@ header {
   flex-direction: column;
   align-items: flex-end;
   flex-shrink: 0;
+  margin-left: auto; /* pushes time to the far right */
 }
 
 .driver-text {
