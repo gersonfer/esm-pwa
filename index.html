@@ -90,7 +90,7 @@
 
         if (s === "running") el.style.border = "3px solid var(--ok)";
         else if (s === "paused") el.style.border = "3px solid var(--warn)";
-        else if (s.includes("over") || s.includes("finish")) el.style.border = "3px solid var(--alert)";
+        else if (s === "finished") el.style.border = "3px solid var(--alert)";
         else el.style.border = "3px solid var(--accent)";
       }
 
