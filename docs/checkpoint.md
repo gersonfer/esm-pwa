@@ -135,3 +135,17 @@ Status: **COMPLETED**
   | 9     | 3    | 3    | 9     | 0.82           |
   | 10–12 | 4    | 3    | 12    | 0.71           |
   | 15    | 5    | 3    | 15    | 0.63           |
+
+Task 003.2 — Active Driver First
+Status: **COMPLETED**
+
+### Summary of Completed Work
+- **Problem**: Drivers were rendered in the order received from the backend (`team.drivers` array). The active driver (`check_in === true`) could appear in any position within the card.
+- **Change**: Added a non-mutating sort before `.map()` in both `renderDesktop()` and `renderMobile()`. The expression `[...(team.drivers || [])].sort((a, b) => (b.check_in ? 1 : 0) - (a.check_in ? 1 : 0))` uses spread to avoid mutating the original array.
+- **Scope**: Modified exactly two lines in `index.html` (line 258 desktop, line 298 mobile). No other files touched.
+- **Validation**:
+  - Case A — active driver in middle `[A, B(active), C]` → `[B, A, C]` ✅
+  - Case B — active already first `[A(active), B, C]` → `[A, B, C]` ✅ (sort is stable on equal keys)
+  - Case C — no active driver `[A, B, C]` → `[A, B, C]` ✅ (all keys equal, order preserved)
+- **Complexity**: O(n log n); n is typically 2–4 drivers per team — effectively O(1) in practice.
+- **Constraints met**: original array not mutated, no new dependencies, `renderDriverCard` untouched, CSS untouched.
