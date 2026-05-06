@@ -30,6 +30,19 @@ header {
   font-size: 1rem;
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-qr {
+  height: 42px;
+  width: auto;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 #track-badge {
   display: none;
   margin-left: .45rem;
@@ -130,7 +143,8 @@ header {
 
 .driver-name {
   display: flex;
-  justify-content: flex-start; /* badge stays adjacent to name */
+  justify-content: flex-start;
+  /* badge stays adjacent to name */
   align-items: center;
   font-size: calc(var(--card-scale, 1) * 0.95rem);
   min-width: 0;
@@ -150,7 +164,8 @@ header {
   flex-direction: column;
   align-items: flex-end;
   flex-shrink: 0;
-  margin-left: auto; /* pushes time to the far right */
+  margin-left: auto;
+  /* pushes time to the far right */
 }
 
 .driver-text {
