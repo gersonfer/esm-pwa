@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🏁 ESM Live Viewer</title>
+  <title>ESM Live Viewer</title>
 
   <link rel="manifest" href="./manifest.json" />
   <meta name="theme-color" content="#10141a" />
@@ -19,7 +19,7 @@
     <div class="header-left">
       <img src="assets/qr.png" class="header-qr">
       <span>
-        🏁 ESM Live Viewer
+        ESM Live Viewer
         <span id="track-badge"></span>
       </span>
     </div>
@@ -83,6 +83,7 @@
         root.style.setProperty('--cols', cols);
         root.style.setProperty('--rows', rows);
         root.style.setProperty('--card-scale', scale);
+        return { cols, rows };
       }
       // ──────────────────────────────────────────────────────────────────────
 
@@ -259,7 +260,20 @@
         const teams = data.teams || [];
 
         // Apply domain-aware layout (columns, rows, font scale) before DOM rebuild
-        applyLayout(teams.length);
+        const layout = applyLayout(teams.length);
+        const capacity = layout.cols * layout.rows;
+        const availableSlots = capacity - teams.length;
+
+        let qrCardHtml = "";
+        if (availableSlots > 0) {
+          qrCardHtml = `
+            <div class="card-desktop" style="align-items:center; justify-content:center; border-top: 4px solid var(--accent); opacity: 0.85;">
+              <img src="assets/qr.png" alt="QR Code" style="max-width:65%; max-height:65%; object-fit:contain; border-radius:8px;">
+              <div style="color: var(--muted); font-weight: 600; font-size: calc(var(--card-scale, 1) * 1rem); margin-top: 12px; letter-spacing: 0.05em;">SCAN TO JOIN</div>
+            </div>
+          `;
+        }
+
         $("#main").innerHTML = `
       <div id="grid">
         ${teams.map((team, i) => {
@@ -289,6 +303,7 @@
             </div>
           `;
         }).join("")}
+        ${qrCardHtml}
       </div>
     `;
       }
@@ -406,13 +421,13 @@
       connect();
 
       // ── Debounced resize handler (TASK-003 / TASK-004) ───────────────────
-      // Re-applies layout on window resize without touching the render loop.
+      // Re-applies layout on window resize. Re-renders desktop to show/hide QR card.
       let resizeTimeout;
       window.addEventListener('resize', () => {
         clearTimeout(resizeTimeout);
         resizeTimeout = setTimeout(() => {
           if (!lastSnapshot || isMobile()) return;
-          applyLayout((lastSnapshot.teams || []).length);
+          renderDesktop(lastSnapshot);
         }, 150);
       });
       // ──────────────────────────────────────────────────────────────────────

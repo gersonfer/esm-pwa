@@ -169,3 +169,18 @@ Status: **COMPLETED**
 - **Applied in**: `renderDesktop` (line 281) and `renderMobile` (line 321) — both identical.
 - **Validation**: Case A `[A, B✓, C]` → `[B✓, A, C]` ✅ | Case B `[A✓, B, C]` → `[A✓, B, C]` ✅ | Case C `[A, B, C]` → `[A, B, C]` ✅
 - **Constraints met**: no filtering, no new logic, `renderDriverCard` untouched, layout untouched.
+
+Task-004 — Dynamic QR Filler Card
+Status: **COMPLETED**
+
+### Summary of Completed Work
+- **Objective**: Render a QR filler card intelligently in unused grid slots of the Viewer PWA, without floating UI elements or absolute overlays. The card must integrate fully into the existing responsive grid layout.
+- **Grid strategy**: The QR filler was injected directly into the desktop grid DOM string during the `renderDesktop` phase. By keeping it as a standard `.card-desktop` grid item, it automatically inherits resizing rules, proportional spacing, and adaptive flex layouts precisely like a real team card.
+- **Empty-slot detection logic**: Utilizing the existing dimension-aware math inside `applyLayout` (which computes explicit cols and rows depending on screen dimensions and team count), the system calculates `total_capacity = layout.cols * layout.rows` and `availableSlots = total_capacity - teams.length`. The QR card is rendered strictly when `availableSlots > 0`.
+- **Responsive Layout Preservation**: Bound `renderDesktop(lastSnapshot)` natively to the debounced window resize handler. Now, when resizing triggers a grid dimension change resulting in empty slots, the QR card dynamically reveals or hides itself based entirely on organic grid capacity without ever reducing space available to active teams.
+- **Files changed**: `/Users/gersonferreira/projetos/esm-live-pwa/index.html`
+- **Validation checklist**:
+  - [x] Scenario 1: Empty Slot Exists - QR card appears when grid has unused capacity.
+  - [x] Scenario 2: Grid Full - No QR card appears when all slots occupied by teams.
+  - [x] Scenario 3: Responsive Resize - Resizing browser updates column count and QR behaves correctly.
+  - [x] Scenario 4: Visual Consistency - QR card matches formatting of regular cards natively, with "SCAN TO JOIN" text perfectly scaled by `--card-scale`.
