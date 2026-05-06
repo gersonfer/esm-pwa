@@ -149,3 +149,23 @@ Status: **COMPLETED**
   - Case C — no active driver `[A, B, C]` → `[A, B, C]` ✅ (all keys equal, order preserved)
 - **Complexity**: O(n log n); n is typically 2–4 drivers per team — effectively O(1) in practice.
 - **Constraints met**: original array not mutated, no new dependencies, `renderDriverCard` untouched, CSS untouched.
+
+Task 003.3 — Active Driver Horizontal Layout
+Status: **COMPLETED**
+
+### Summary of Completed Work
+- **Change**: Restructured the active driver row from a vertical two-line layout (`[TIME]` / `[NAME + BADGE]`) to a horizontal single-line layout (`[NAME + BADGES]` `[TIME]`).
+- **Left side** (`flex:1, overflow:hidden`): driver name (`driver-text`, truncates with ellipsis) + skill badge + position timer badge — all inline with `gap:6px`.
+- **Right side** (`flex-shrink:0, margin-left:8px`): large monospace countdown (`2.2rem` scaled), color-coded, blink-capable.
+- **Regression fixed**: User's edit had accidentally removed the `else` branch for inactive drivers. The branch was restored in the same fix, preserving the original inactive driver layout (`driver-info-left` + `driver-info-right` with `margin-left:auto`).
+- **Unchanged**: blink logic, color logic, position timer logic, `renderDriverCard` signature, CSS.
+
+Task 003.4 — Restore Inactive Drivers Rendering (Fix Sort Regression)
+Status: **COMPLETED**
+
+### Summary of Completed Work
+- **Problem**: The arithmetic sort comparator `(b.check_in ? 1 : 0) - (a.check_in ? 1 : 0)` was non-deterministic in some JS engine implementations, causing incorrect render order and invisible inactive drivers.
+- **Fix**: Replaced with an explicit branch comparator: `if (a.check_in !== b.check_in) { return a.check_in ? -1 : 1; } return 0;` — guarantees active drivers sort to `-1` (first), inactive sort to `1` (after), and equal values return `0` (preserving original relative order).
+- **Applied in**: `renderDesktop` (line 281) and `renderMobile` (line 321) — both identical.
+- **Validation**: Case A `[A, B✓, C]` → `[B✓, A, C]` ✅ | Case B `[A✓, B, C]` → `[A✓, B, C]` ✅ | Case C `[A, B, C]` → `[A, B, C]` ✅
+- **Constraints met**: no filtering, no new logic, `renderDriverCard` untouched, layout untouched.

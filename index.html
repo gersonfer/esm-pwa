@@ -278,7 +278,7 @@
                 ${team.deck ? '<span class="badge-box" style="margin-left:auto;">DECK</span>' : ''}
               </h3>
               <div class="drivers-container">
-                ${[...(team.drivers || [])].sort((a, b) => (b.check_in ? 1 : 0) - (a.check_in ? 1 : 0)).map(d => renderDriverCard(d)).join("")}
+                ${[...(team.drivers || [])].sort((a, b) => { if (a.check_in !== b.check_in) { return a.check_in ? -1 : 1; } return 0; }).map(d => renderDriverCard(d)).join("")}
               </div>
               <div style="margin-top: auto; padding-top: 8px;">
                 <button class="stints-icon-btn" onclick="window._goToStints(${team.team_id}, ${i})" title="Stints">📋</button>
@@ -318,7 +318,7 @@
                 ${team.deck ? '<span class="badge-box" style="margin-left:auto;">DECK</span>' : ''}
               </h3>
               <div class="drivers-container">
-                ${[...(team.drivers || [])].sort((a, b) => (b.check_in ? 1 : 0) - (a.check_in ? 1 : 0)).map(d => renderDriverCard(d)).join("")}
+                ${[...(team.drivers || [])].sort((a, b) => { if (a.check_in !== b.check_in) { return a.check_in ? -1 : 1; } return 0; }).map(d => renderDriverCard(d)).join("")}
               </div>
               <div style="margin-top: auto; padding-top: 8px;">
                 <button class="stints-icon-btn" onclick="window._goToStints(${team.team_id}, ${i})" title="Stints">📋</button>
