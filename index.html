@@ -264,19 +264,50 @@
         const capacity = layout.cols * layout.rows;
         const availableSlots = capacity - teams.length;
 
-        let qrCardHtml = "";
-        if (availableSlots > 0) {
-          qrCardHtml = `
-            <div class="card-desktop" style="align-items:center; justify-content:center; border-top: 4px solid var(--accent); opacity: 0.85;">
-              <img src="assets/qr.png" alt="QR Code" style="max-width:65%; max-height:65%; object-fit:contain; border-radius:8px;">
-              <div style="color: var(--muted); font-weight: 600; font-size: calc(var(--card-scale, 1) * 1rem); margin-top: 12px; letter-spacing: 0.05em;">ENTRE NA CORRIDA</div>
+        const grid = $("#grid");
+        const needsRebuild = !grid || grid.dataset.teamCount !== String(teams.length);
+
+        if (needsRebuild) {
+          let qrCardHtml = "";
+          if (availableSlots > 0) {
+            qrCardHtml = `
+              <div class="card-desktop" style="align-items:center; justify-content:center; border-top: 4px solid var(--accent); opacity: 0.85;">
+                <img src="assets/qr.png" alt="QR Code" style="max-width:65%; max-height:65%; object-fit:contain; border-radius:8px;">
+                <div style="color: var(--muted); font-weight: 600; font-size: calc(var(--card-scale, 1) * 1rem); margin-top: 12px; letter-spacing: 0.05em;">ENTRE NA CORRIDA</div>
+              </div>
+            `;
+          }
+
+          $("#main").innerHTML = `
+            <div id="grid" data-team-count="${teams.length}">
+              ${teams.map((team, i) => `
+                <div id="team-card-${team.team_id}" class="card-desktop">
+                  <h3 style="display:flex; align-items:center; margin:0 0 .8rem 0;">
+                    ${team.team_name}
+                    ${stars(team.category)}
+                    <div id="team-badges-${team.team_id}" style="display:flex; align-items:center; margin-left:auto; gap:8px;"></div>
+                  </h3>
+                  <div id="team-drivers-${team.team_id}" class="drivers-container"></div>
+                  <div style="margin-top: auto; padding-top: 8px;">
+                    <button class="stints-icon-btn" onclick="window._goToStints(${team.team_id}, ${i})" title="Stints">📋</button>
+                  </div>
+                </div>
+              `).join("")}
+              ${qrCardHtml}
             </div>
           `;
         }
 
-        $("#main").innerHTML = `
-      <div id="grid">
-        ${teams.map((team, i) => {
+        // Surgical Update
+        teams.forEach(team => {
+          const card = document.getElementById(`team-card-${team.team_id}`);
+          if (!card) return;
+
+          // Update deck class & border
+          card.className = "card-desktop" + (team.deck ? " deck" : "");
+          card.style.borderTop = `4px solid ${team.color || "#888"}`;
+
+          // Update badges
           let boxHtml = "";
           if (team.is_box) {
             const elapsed = Math.floor(team.box_elapsed_sec || 0);
@@ -290,28 +321,21 @@
               boxHtml = `<span class="badge-box" style="background: var(--ok); color: #000; border-color: transparent;">BOX ✅ SOLTAR (+${over}s)</span>`;
             }
           }
+          let deckHtml = team.deck ? '<span class="badge-box" style="cursor:help;" title="A equipe está atualmente no Deck.&#10;&#10;Os cronômetros de stint dos pilotos permanecem inalterados enquanto a equipe aguarda.&#10;&#10;Ao sair do Deck, o sistema recalcula automaticamente o consumo proporcional de stint para o período de espera.">DECK ( i )</span>' : '';
+          
+          const badgesContainer = document.getElementById(`team-badges-${team.team_id}`);
+          const newBadges = boxHtml + deckHtml;
+          if (badgesContainer.innerHTML !== newBadges) {
+            badgesContainer.innerHTML = newBadges;
+          }
 
-          return `
-            <div class="card-desktop ${team.deck ? "deck" : ""}"
-                 style="border-top: 4px solid ${team.color || "#888"}">
-              <h3 style="display:flex; align-items:center; margin:0 0 .8rem 0;">
-                ${team.team_name}
-                ${stars(team.category)}
-                ${boxHtml}
-                ${team.deck ? '<span class="badge-box" style="margin-left:auto; cursor:help;" title="A equipe está atualmente no Deck.&#10;&#10;Os cronômetros de stint dos pilotos permanecem inalterados enquanto a equipe aguarda.&#10;&#10;Ao sair do Deck, o sistema recalcula automaticamente o consumo proporcional de stint para o período de espera.">DECK ( i )</span>' : ''}
-              </h3>
-              <div class="drivers-container">
-                ${[...(team.drivers || [])].sort((a, b) => { if (a.check_in !== b.check_in) { return a.check_in ? -1 : 1; } return 0; }).map(d => renderDriverCard(d)).join("")}
-              </div>
-              <div style="margin-top: auto; padding-top: 8px;">
-                <button class="stints-icon-btn" onclick="window._goToStints(${team.team_id}, ${i})" title="Stints">📋</button>
-              </div>
-            </div>
-          `;
-        }).join("")}
-        ${qrCardHtml}
-      </div>
-    `;
+          // Update Drivers
+          const newDrivers = [...(team.drivers || [])].sort((a, b) => { if (a.check_in !== b.check_in) { return a.check_in ? -1 : 1; } return 0; }).map(d => renderDriverCard(d)).join("");
+          const driversContainer = document.getElementById(`team-drivers-${team.team_id}`);
+          if (driversContainer.innerHTML !== newDrivers) {
+            driversContainer.innerHTML = newDrivers;
+          }
+        });
       }
 
       /* ===========================================================
@@ -320,11 +344,73 @@
       function renderMobile(data) {
         const teams = data.teams || [];
         const main = $("#main");
-        const prevScroll = main.querySelector("#carousel")?.scrollLeft || 0;
+        const carousel = main.querySelector("#carousel");
+        const needsRebuild = !carousel || carousel.dataset.teamCount !== String(teams.length);
 
-        main.innerHTML = `
-      <div id="carousel">
-        ${teams.map((team, i) => {
+        if (needsRebuild) {
+          main.innerHTML = `
+            <div id="carousel" data-team-count="${teams.length}">
+              ${teams.map((team, i) => `
+                <div class="carousel-card" id="mobile-team-card-${team.team_id}">
+                  <h3 style="display:flex; align-items:center; margin:0 0 .8rem 0;">
+                    ${team.team_name}
+                    ${stars(team.category)}
+                    <div id="mobile-team-badges-${team.team_id}" style="display:flex; align-items:center; margin-left:auto; gap:8px;"></div>
+                  </h3>
+                  <div id="mobile-team-drivers-${team.team_id}" class="drivers-container"></div>
+                  <div style="margin-top: auto; padding-top: 8px;">
+                    <button class="stints-icon-btn" onclick="window._goToStints(${team.team_id}, ${i})" title="Stints">📋</button>
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+          `;
+
+          const el = $("#carousel");
+          if (el && !el._hasScrollListener) {
+            el.addEventListener("scroll", () => {
+              const card = el.querySelector(".carousel-card");
+              if (!card) return;
+              const w = card.offsetWidth || 1;
+              activeCardIndex = Math.round(el.scrollLeft / w);
+              document.querySelectorAll(".dot").forEach((d, i) => {
+                d.classList.toggle("active", i === activeCardIndex);
+              });
+            });
+            el._hasScrollListener = true;
+          }
+
+          if (!restoredCarousel && teams.length > 0) {
+            const savedIndex = sessionStorage.getItem('esm_active_card');
+            if (savedIndex !== null) {
+              const targetIndex = parseInt(savedIndex);
+              setTimeout(() => {
+                const cards = el.querySelectorAll(".carousel-card");
+                if (cards.length > 0 && cards[targetIndex]) {
+                  cards[targetIndex].scrollIntoView({ behavior: 'auto', inline: 'center' });
+                  activeCardIndex = targetIndex;
+                  document.querySelectorAll(".dot").forEach((d, idx) => {
+                    d.classList.toggle("active", idx === activeCardIndex);
+                  });
+                  sessionStorage.removeItem('esm_active_card');
+                  restoredCarousel = true;
+                }
+              }, 80);
+            } else {
+              restoredCarousel = true;
+            }
+          }
+        }
+
+        // Surgical Update
+        teams.forEach(team => {
+          const card = document.getElementById(`mobile-team-card-${team.team_id}`);
+          if (!card) return;
+
+          card.className = "carousel-card" + (team.deck ? " deck" : "");
+          card.style.borderTop = `4px solid ${team.color || "#888"}`;
+
+          // Update badges
           let boxHtml = "";
           if (team.is_box) {
             const elapsed = Math.floor(team.box_elapsed_sec || 0);
@@ -338,70 +424,27 @@
               boxHtml = `<span class="badge-box" style="background: var(--ok); color: #000; border-color: transparent;">BOX ✅ SOLTAR (+${over}s)</span>`;
             }
           }
-
-          return `
-            <div class="carousel-card ${team.deck ? "deck" : ""}" style="border-top: 4px solid ${team.color || "#888"}">
-              <h3 style="display:flex; align-items:center; margin:0 0 .8rem 0;">
-                ${team.team_name}
-                ${stars(team.category)}
-                ${boxHtml}
-                ${team.deck ? '<span class="badge-box" style="margin-left:auto; cursor:help;" title="A equipe está atualmente no Deck.&#10;&#10;Os cronômetros de stint dos pilotos permanecem inalterados enquanto a equipe aguarda.&#10;&#10;Ao sair do Deck, o sistema recalcula automaticamente o consumo proporcional de stint para o período de espera.">DECK ( i )</span>' : ''}
-              </h3>
-              <div class="drivers-container">
-                ${[...(team.drivers || [])].sort((a, b) => { if (a.check_in !== b.check_in) { return a.check_in ? -1 : 1; } return 0; }).map(d => renderDriverCard(d)).join("")}
-              </div>
-              <div style="margin-top: auto; padding-top: 8px;">
-                <button class="stints-icon-btn" onclick="window._goToStints(${team.team_id}, ${i})" title="Stints">📋</button>
-              </div>
-            </div>
-          `;
-        }).join("")}
-      </div>
-    `;
-
-        const el = $("#carousel");
-
-        if (!restoredCarousel && teams.length > 0) {
-          const savedIndex = sessionStorage.getItem('esm_active_card');
-          if (savedIndex !== null) {
-            const targetIndex = parseInt(savedIndex);
-            setTimeout(() => {
-              const cards = el.querySelectorAll(".carousel-card");
-              if (cards.length > 0 && cards[targetIndex]) {
-                cards[targetIndex].scrollIntoView({
-                  behavior: 'auto',
-                  inline: 'center'
-                });
-                activeCardIndex = targetIndex;
-                document.querySelectorAll(".dot").forEach((d, idx) => {
-                  d.classList.toggle("active", idx === activeCardIndex);
-                });
-                sessionStorage.removeItem('esm_active_card');
-                restoredCarousel = true;
-              }
-            }, 80);
-          } else {
-            restoredCarousel = true;
+          let deckHtml = team.deck ? '<span class="badge-box" style="cursor:help;" title="A equipe está atualmente no Deck.&#10;&#10;Os cronômetros de stint dos pilotos permanecem inalterados enquanto a equipe aguarda.&#10;&#10;Ao sair do Deck, o sistema recalcula automaticamente o consumo proporcional de stint para o período de espera.">DECK ( i )</span>' : '';
+          
+          const badgesContainer = document.getElementById(`mobile-team-badges-${team.team_id}`);
+          const newBadges = boxHtml + deckHtml;
+          if (badgesContainer.innerHTML !== newBadges) {
+            badgesContainer.innerHTML = newBadges;
           }
-        } else {
-          el.scrollLeft = prevScroll;
-        }
+
+          // Update Drivers
+          const newDrivers = [...(team.drivers || [])].sort((a, b) => { if (a.check_in !== b.check_in) { return a.check_in ? -1 : 1; } return 0; }).map(d => renderDriverCard(d)).join("");
+          const driversContainer = document.getElementById(`mobile-team-drivers-${team.team_id}`);
+          if (driversContainer.innerHTML !== newDrivers) {
+            driversContainer.innerHTML = newDrivers;
+          }
+        });
 
         const dots = $("#dots");
-        dots.innerHTML = teams.map((_, i) => `
-      <div class="dot ${i === activeCardIndex ? 'active' : ''}"></div>
-    `).join("");
-
-        el.addEventListener("scroll", () => {
-          const card = el.querySelector(".carousel-card");
-          if (!card) return;
-          const w = card.offsetWidth || 1;
-          activeCardIndex = Math.round(el.scrollLeft / w);
-
-          document.querySelectorAll(".dot").forEach((d, i) => {
-            d.classList.toggle("active", i === activeCardIndex);
-          });
-        });
+        const newDotsHtml = teams.map((_, i) => `<div class="dot ${i === activeCardIndex ? 'active' : ''}"></div>`).join("");
+        if (dots.innerHTML !== newDotsHtml) {
+            dots.innerHTML = newDotsHtml;
+        }
       }
 
       function render(data) {
